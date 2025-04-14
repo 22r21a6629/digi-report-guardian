@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { HospitalCard } from "@/components/hospitals/HospitalCard";
 import { Hospital } from "@/types/hospital";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Building, MapPin, Search } from "lucide-react";
 
 // Mock data for hospitals
 const mockHospitals: Hospital[] = [
