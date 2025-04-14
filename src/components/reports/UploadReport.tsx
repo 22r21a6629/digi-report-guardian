@@ -1,12 +1,14 @@
-
 import { useState } from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 import { Upload, File, Image, FileText } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -26,41 +28,25 @@ export function UploadReport() {
   const { toast } = useToast();
 
   const handleAddTag = () => {
-    if (currentTag && !tags.includes(currentTag)) {
-      setTags([...tags, currentTag]);
+    if (currentTag.trim() !== "") {
+      setTags([...tags, currentTag.trim()]);
       setCurrentTag("");
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
-    }
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Check file size (10MB max)
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Maximum file size is 10MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      setFileSelected(file);
+    if (e.target.files && e.target.files.length > 0) {
+      setFileSelected(e.target.files[0]);
+    } else {
+      setFileSelected(null);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!fileSelected) {
@@ -95,11 +81,7 @@ export function UploadReport() {
         .from('medical-reports')
         .upload(filePath, fileSelected, {
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            const percent = Math.round((progress.loaded / progress.total) * 100);
-            setUploadProgress(percent);
-          }
+          upsert: false
         });
         
       if (uploadError) {
@@ -116,7 +98,7 @@ export function UploadReport() {
       
       toast({
         title: "Report uploaded successfully",
-        description: "Your report has been saved to your records",
+        description: "Your medical report has been uploaded",
       });
       
       // Reset form
@@ -145,172 +127,159 @@ export function UploadReport() {
     }
   };
 
-  const getFileIcon = () => {
-    if (!fileSelected) return <Upload className="h-16 w-16 text-muted-foreground" />;
-    
-    const fileType = fileSelected.type;
-    if (fileType.includes('image')) return <Image className="h-16 w-16 text-blue-500" />;
-    if (fileType.includes('pdf')) return <File className="h-16 w-16 text-red-500" />;
-    return <FileText className="h-16 w-16 text-green-500" />;
-  };
-
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Upload Medical Report</CardTitle>
-        <CardDescription>
-          Add your medical reports to keep all your health records in one place.
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="p-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center">
-            {getFileIcon()}
-            
-            <div className="mt-4 mb-6">
-              <h3 className="font-medium text-lg">
-                {fileSelected ? fileSelected.name : "Upload your report"}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {fileSelected 
-                  ? `${(fileSelected.size / 1024 / 1024).toFixed(2)} MB` 
-                  : "Drag and drop or click to select a file"}
-              </p>
-            </div>
-            
-            <Input
-              id="file-upload"
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById('file-upload')?.click()}
-            >
-              Select file
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2">
-              Supports PDF, JPG, PNG, DOC, DOCX up to 10MB
-            </p>
-            
-            {isLoading && uploadProgress > 0 && (
-              <div className="w-full mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div 
-                    className="bg-primary h-2.5 rounded-full" 
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Uploading: {uploadProgress}%
-                </p>
-              </div>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="report-type">Report Type</Label>
-              <Select value={reportType} onValueChange={setReportType} required>
+              <Select value={reportType} onValueChange={setReportType}>
                 <SelectTrigger id="report-type">
                   <SelectValue placeholder="Select report type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="blood-test">Blood Test</SelectItem>
-                  <SelectItem value="x-ray">X-Ray</SelectItem>
-                  <SelectItem value="mri">MRI</SelectItem>
-                  <SelectItem value="ct-scan">CT Scan</SelectItem>
-                  <SelectItem value="ultrasound">Ultrasound</SelectItem>
-                  <SelectItem value="prescription">Prescription</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="radiology">Radiology</SelectItem>
+                  <SelectItem value="pathology">Pathology</SelectItem>
+                  <SelectItem value="cardiology">Cardiology</SelectItem>
+                  <SelectItem value="neurology">Neurology</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="hospital">Hospital/Clinic</Label>
-              <Select value={hospital} onValueChange={setHospital} required>
-                <SelectTrigger id="hospital">
-                  <SelectValue placeholder="Select hospital" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="city-general">City General Hospital</SelectItem>
-                  <SelectItem value="medstar">MedStar Clinic</SelectItem>
-                  <SelectItem value="health-first">Health First Medical</SelectItem>
-                  <SelectItem value="central-diag">Central Diagnostics</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="date">Report Date</Label>
-              <DatePicker
-                selected={reportDate}
-                onSelect={setReportDate}
-                disabled={(date) => date > new Date()}
+            <div>
+              <Label htmlFor="hospital">Hospital</Label>
+              <Input
+                type="text"
+                id="hospital"
+                value={hospital}
+                onChange={(e) => setHospital(e.target.value)}
+                placeholder="Enter hospital name"
               />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags</Label>
-              <div className="flex">
-                <Input
-                  id="tags"
-                  placeholder="Enter tags and press Enter"
-                  value={currentTag}
-                  onChange={(e) => setCurrentTag(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="ml-2"
-                  onClick={handleAddTag}
-                >
-                  Add
-                </Button>
-              </div>
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {tags.map((tag) => (
-                    <Badge 
-                      key={tag}
-                      variant="secondary"
-                      className="px-3 py-1 flex items-center gap-1"
-                      onClick={() => handleRemoveTag(tag)}
-                    >
-                      {tag}
-                      <span className="cursor-pointer">×</span>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
+          <div>
+            <Label>Report Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={format(reportDate || new Date(), "PPP")}
+                >
+                  {reportDate ? (
+                    format(reportDate, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                  <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={reportDate}
+                  onSelect={setReportDate}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("1900-01-01")
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              placeholder="Add any notes or context about this report"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              placeholder="Enter report description"
             />
           </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline">
-              Cancel
-            </Button>
+          <div>
+            <Label>Tags</Label>
+            <div className="flex items-center space-x-2">
+              <Input
+                type="text"
+                placeholder="Add tags"
+                value={currentTag}
+                onChange={(e) => setCurrentTag(e.target.value)}
+              />
+              <Button type="button" size="sm" onClick={handleAddTag}>
+                Add Tag
+              </Button>
+            </div>
+            <div className="flex flex-wrap mt-2">
+              {tags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="mr-2 mb-2"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    className="ml-1 inline-flex items-center rounded-full bg-secondary px-1 py-0.5 text-xs font-semibold ring-offset-background transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                    onClick={() => handleRemoveTag(tag)}
+                  >
+                    <span className="sr-only">Remove</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="h-3 w-3"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="file-upload" className="cursor-pointer">
+              {fileSelected ? (
+                <div className="flex items-center">
+                  {fileSelected.type.startsWith("image/") ? (
+                    <Image className="mr-2 h-4 w-4" />
+                  ) : fileSelected.type === "application/pdf" ? (
+                    <FileText className="mr-2 h-4 w-4" />
+                  ) : (
+                    <File className="mr-2 h-4 w-4" />
+                  )}
+                  {fileSelected.name}
+                  <Badge className="ml-2">{fileSelected.size} bytes</Badge>
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <Upload className="mr-2 h-4 w-4" />
+                  <span>Click to upload file</span>
+                </div>
+              )}
+            </Label>
+            <Input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </div>
+          {isLoading && (
+            <progress value={uploadProgress} max="100">
+              {uploadProgress}%
+            </progress>
+          )}
+          <CardFooter>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Uploading..." : "Upload Report"}
             </Button>
-          </div>
+          </CardFooter>
         </form>
       </CardContent>
     </Card>

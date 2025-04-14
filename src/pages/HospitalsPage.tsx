@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { HospitalCard } from "@/components/hospitals/HospitalCard";
@@ -79,11 +80,20 @@ export default function HospitalsPage() {
 
   // Filter hospitals based on search term and specialty
   const filteredHospitals = mockHospitals.filter(hospital => {
-    const matchesSearch = hospital.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         hospital.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = searchTerm === "" || 
+                         hospital.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         hospital.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         hospital.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
     const matchesSpecialty = specialtyFilter === "" || hospital.specialty === specialtyFilter;
+    
     return matchesSearch && matchesSpecialty;
   });
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
 
   return (
     <AppLayout title="Hospitals">
@@ -97,7 +107,7 @@ export default function HospitalsPage() {
               <Input
                 placeholder="Search by hospital name or location"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="pl-9"
               />
             </div>
