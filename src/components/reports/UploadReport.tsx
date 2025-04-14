@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Upload, File, Image, FileText } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
 export function UploadReport() {
   const [reportType, setReportType] = useState("");
@@ -20,6 +22,7 @@ export function UploadReport() {
   const [currentTag, setCurrentTag] = useState("");
   const [fileSelected, setFileSelected] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
 
   const handleAddTag = () => {
@@ -43,6 +46,16 @@ export function UploadReport() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Maximum file size is 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setFileSelected(file);
     }
   };
@@ -58,13 +71,48 @@ export function UploadReport() {
       });
       return;
     }
+
+    if (!reportType || !hospital || !reportDate) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
+    setUploadProgress(0);
     
-    // Mock upload for now - will replace with Supabase storage later
     try {
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Create a unique file name
+      const fileExt = fileSelected.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${reportType}/${fileName}`;
+      
+      // Upload file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('medical-reports')
+        .upload(filePath, fileSelected, {
+          cacheControl: '3600',
+          upsert: false,
+          onUploadProgress: (progress) => {
+            const percent = Math.round((progress.loaded / progress.total) * 100);
+            setUploadProgress(percent);
+          }
+        });
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL for the uploaded file
+      const { data: urlData } = supabase.storage
+        .from('medical-reports')
+        .getPublicUrl(filePath);
+        
+      // Save report metadata to database (would be implemented when we have Auth)
+      // For now, just show success message
       
       toast({
         title: "Report uploaded successfully",
@@ -78,6 +126,7 @@ export function UploadReport() {
       setDescription("");
       setTags([]);
       setFileSelected(null);
+      setUploadProgress(0);
       
       // Reset file input
       const fileInput = document.getElementById('file-upload') as HTMLInputElement;
@@ -85,9 +134,10 @@ export function UploadReport() {
         fileInput.value = '';
       }
     } catch (error) {
+      console.error("Upload error:", error);
       toast({
         title: "Upload failed",
-        description: "There was a problem uploading your report",
+        description: error instanceof Error ? error.message : "There was a problem uploading your report",
         variant: "destructive",
       });
     } finally {
@@ -145,6 +195,20 @@ export function UploadReport() {
             <p className="text-xs text-muted-foreground mt-2">
               Supports PDF, JPG, PNG, DOC, DOCX up to 10MB
             </p>
+            
+            {isLoading && uploadProgress > 0 && (
+              <div className="w-full mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-primary h-2.5 rounded-full" 
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Uploading: {uploadProgress}%
+                </p>
+              </div>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
