@@ -10,6 +10,8 @@ import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import UploadPage from "./pages/UploadPage";
 import HospitalsPage from "./pages/HospitalsPage";
+import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,12 +30,12 @@ const App = () => (
           {/* Protected Routes - Would add actual auth protection with Supabase later */}
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/upload" element={<UploadPage />} />
-          <Route path="/hospitals" element={<HospitalsPage />} /> {/* New route */}
+          <Route path="/hospitals" element={<HospitalsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           
-          {/* Redirect /reports to dashboard for now */}
-          <Route path="/reports" element={<Navigate to="/dashboard" />} />
+          {/* Redirect /search to dashboard for now */}
           <Route path="/search" element={<Navigate to="/dashboard" />} />
-          <Route path="/settings" element={<Navigate to="/dashboard" />} />
           
           <Route path="*" element={<NotFound />} />
         </Routes>
