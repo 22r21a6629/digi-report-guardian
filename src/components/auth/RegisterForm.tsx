@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { UserPlus, Mail, User, Lock, UserRound } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export function RegisterForm() {
   const [fullName, setFullName] = useState("");
@@ -32,23 +33,40 @@ export function RegisterForm() {
     
     setIsLoading(true);
     
-    // Mock registration for now - will replace with Supabase auth later
     try {
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Account created successfully",
-        description: "You can now sign in with your credentials",
+      // Register the user with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            user_type: userType,
+          },
+        },
       });
       
-      navigate("/login");
+      if (error) {
+        toast({
+          title: "Registration failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account created successfully",
+          description: "You can now sign in with your credentials",
+        });
+        
+        navigate("/login");
+      }
     } catch (error) {
       toast({
         title: "Registration failed",
         description: "There was a problem creating your account",
         variant: "destructive",
       });
+      console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
     }

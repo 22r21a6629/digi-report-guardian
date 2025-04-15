@@ -100,6 +100,17 @@ export function LoginForm() {
           </>
         )}
       </Button>
+      
+      <div className="text-center">
+        <span className="text-gray-500">Don't have an account?</span>{" "}
+        <Button 
+          variant="link" 
+          className="px-0 text-dignoweb-primary"
+          onClick={() => navigate("/register")}
+        >
+          Sign up
+        </Button>
+      </div>
     </form>
   );
 }

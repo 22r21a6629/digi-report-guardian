@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Shield, FileText, Hospital, Lock } from "lucide-react";
@@ -20,6 +21,12 @@ export default function LandingPage() {
               className="inline-flex"
             >
               Sign in
+            </Button>
+            <Button 
+              onClick={() => navigate("/register")}
+              className="inline-flex bg-dignoweb-primary hover:bg-dignoweb-primary/90"
+            >
+              Sign up
             </Button>
           </div>
         </div>
@@ -44,6 +51,13 @@ export default function LandingPage() {
                 className="border-white text-white hover:bg-white/10"
               >
                 Sign In
+              </Button>
+              <Button 
+                size="lg"
+                onClick={() => navigate("/register")}
+                className="bg-white text-dignoweb-primary hover:bg-white/90"
+              >
+                Sign Up
               </Button>
             </div>
           </div>
@@ -113,14 +127,23 @@ export default function LandingPage() {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Join thousands of users who trust Dignoweb with their health information.
           </p>
-          <Button 
-            variant="outline" 
-            size="lg"
-            onClick={() => navigate("/login")}
-            className="border-dignoweb-primary text-dignoweb-primary hover:bg-dignoweb-primary/10"
-          >
-            Sign In
-          </Button>
+          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => navigate("/login")}
+              className="border-dignoweb-primary text-dignoweb-primary hover:bg-dignoweb-primary/10"
+            >
+              Sign In
+            </Button>
+            <Button 
+              size="lg"
+              onClick={() => navigate("/register")}
+              className="bg-dignoweb-primary text-white hover:bg-dignoweb-primary/90"
+            >
+              Create Account
+            </Button>
+          </div>
         </div>
       </section>
 
