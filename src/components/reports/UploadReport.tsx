@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
+import { Progress } from "@/components/ui/progress";
 
 export function UploadReport() {
   const [reportType, setReportType] = useState("");
@@ -71,6 +73,17 @@ export function UploadReport() {
     setUploadProgress(0);
     
     try {
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 300);
+      
       // Create a unique file name
       const fileExt = fileSelected.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
@@ -83,6 +96,9 @@ export function UploadReport() {
           cacheControl: '3600',
           upsert: false
         });
+        
+      clearInterval(progressInterval);
+      setUploadProgress(100);
         
       if (uploadError) {
         throw uploadError;
@@ -166,14 +182,14 @@ export function UploadReport() {
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
-                  className={format(reportDate || new Date(), "PPP")}
+                  className={`w-full justify-start text-left font-normal ${!reportDate ? "text-muted-foreground" : ""}`}
                 >
                   {reportDate ? (
                     format(reportDate, "PPP")
                   ) : (
                     <span>Pick a date</span>
                   )}
-                  <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -206,6 +222,12 @@ export function UploadReport() {
                 placeholder="Add tags"
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
               />
               <Button type="button" size="sm" onClick={handleAddTag}>
                 Add Tag
@@ -242,26 +264,29 @@ export function UploadReport() {
               ))}
             </div>
           </div>
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="file-upload" className="cursor-pointer">
-              {fileSelected ? (
-                <div className="flex items-center">
-                  {fileSelected.type.startsWith("image/") ? (
-                    <Image className="mr-2 h-4 w-4" />
-                  ) : fileSelected.type === "application/pdf" ? (
-                    <FileText className="mr-2 h-4 w-4" />
-                  ) : (
-                    <File className="mr-2 h-4 w-4" />
-                  )}
-                  {fileSelected.name}
-                  <Badge className="ml-2">{fileSelected.size} bytes</Badge>
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <Upload className="mr-2 h-4 w-4" />
-                  <span>Click to upload file</span>
-                </div>
-              )}
+              <div className="border border-dashed border-gray-300 rounded-md p-4 hover:bg-gray-50 transition-colors flex items-center justify-center">
+                {fileSelected ? (
+                  <div className="flex items-center">
+                    {fileSelected.type.startsWith("image/") ? (
+                      <Image className="mr-2 h-4 w-4" />
+                    ) : fileSelected.type === "application/pdf" ? (
+                      <FileText className="mr-2 h-4 w-4" />
+                    ) : (
+                      <File className="mr-2 h-4 w-4" />
+                    )}
+                    <span className="text-sm">{fileSelected.name}</span>
+                    <Badge className="ml-2">{(fileSelected.size / 1024).toFixed(1)} KB</Badge>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <Upload className="mb-2 h-8 w-8 text-gray-400" />
+                    <span className="text-sm text-gray-500">Click to upload file</span>
+                    <span className="text-xs text-gray-400 mt-1">PDF, Images, or Documents</span>
+                  </div>
+                )}
+              </div>
             </Label>
             <Input
               type="file"
@@ -271,12 +296,16 @@ export function UploadReport() {
             />
           </div>
           {isLoading && (
-            <progress value={uploadProgress} max="100">
-              {uploadProgress}%
-            </progress>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span>Uploading...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
           )}
-          <CardFooter>
-            <Button type="submit" disabled={isLoading}>
+          <CardFooter className="px-0 pb-0">
+            <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? "Uploading..." : "Upload Report"}
             </Button>
           </CardFooter>
