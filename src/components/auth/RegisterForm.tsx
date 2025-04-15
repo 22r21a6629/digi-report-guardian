@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { UserPlus, Mail, User, Lock, UserRound } from "lucide-react";
 
 export function RegisterForm() {
   const [fullName, setFullName] = useState("");
@@ -56,7 +57,10 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="fullName">Full Name</Label>
+        <Label htmlFor="fullName" className="flex items-center gap-2">
+          <User className="h-4 w-4" />
+          Full Name
+        </Label>
         <Input
           id="fullName"
           type="text"
@@ -68,7 +72,10 @@ export function RegisterForm() {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email" className="flex items-center gap-2">
+          <Mail className="h-4 w-4" />
+          Email
+        </Label>
         <Input
           id="email"
           type="email"
@@ -80,7 +87,10 @@ export function RegisterForm() {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="userType">I am a</Label>
+        <Label htmlFor="userType" className="flex items-center gap-2">
+          <UserRound className="h-4 w-4" />
+          I am a
+        </Label>
         <Select 
           value={userType} 
           onValueChange={setUserType}
@@ -97,7 +107,10 @@ export function RegisterForm() {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password" className="flex items-center gap-2">
+          <Lock className="h-4 w-4" />
+          Password
+        </Label>
         <Input
           id="password"
           type="password"
@@ -109,7 +122,10 @@ export function RegisterForm() {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Label htmlFor="confirmPassword" className="flex items-center gap-2">
+          <Lock className="h-4 w-4" />
+          Confirm Password
+        </Label>
         <Input
           id="confirmPassword"
           type="password"
@@ -122,10 +138,15 @@ export function RegisterForm() {
       
       <Button 
         type="submit" 
-        className="w-full bg-dignoweb-primary hover:bg-dignoweb-primary/90"
+        className="w-full bg-dignoweb-primary hover:bg-dignoweb-primary/90 mt-6"
         disabled={isLoading}
       >
-        {isLoading ? "Creating account..." : "Create account"}
+        {isLoading ? "Creating account..." : (
+          <span className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            Create Account
+          </span>
+        )}
       </Button>
       
       <div className="text-center">

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, FileText, Hospital, Lock } from "lucide-react";
+import { Shield, FileText, Hospital, Lock, UserPlus } from "lucide-react";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -24,9 +24,10 @@ export default function LandingPage() {
             </Button>
             <Button 
               onClick={() => navigate("/register")}
-              className="bg-dignoweb-primary hover:bg-dignoweb-primary/90"
+              className="bg-dignoweb-primary hover:bg-dignoweb-primary/90 flex items-center gap-2"
             >
-              Get Started
+              <UserPlus className="h-4 w-4" />
+              Sign Up
             </Button>
           </div>
         </div>
@@ -47,8 +48,9 @@ export default function LandingPage() {
               <Button 
                 size="lg" 
                 onClick={() => navigate("/register")}
-                className="bg-white text-dignoweb-primary hover:bg-gray-100"
+                className="bg-white text-dignoweb-primary hover:bg-gray-100 flex items-center gap-2"
               >
+                <UserPlus className="h-5 w-5" />
                 Create Free Account
               </Button>
               <Button 
@@ -130,9 +132,10 @@ export default function LandingPage() {
           <Button 
             size="lg" 
             onClick={() => navigate("/register")}
-            className="bg-dignoweb-primary hover:bg-dignoweb-primary/90"
+            className="bg-dignoweb-primary hover:bg-dignoweb-primary/90 flex items-center gap-2"
           >
-            Get Started For Free
+            <UserPlus className="h-5 w-5" />
+            Sign Up For Free
           </Button>
         </div>
       </section>
