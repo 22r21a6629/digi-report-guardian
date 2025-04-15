@@ -1,7 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, FileText, Hospital, Lock, UserPlus } from "lucide-react";
+import { Shield, FileText, Hospital, Lock } from "lucide-react";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -18,16 +17,9 @@ export default function LandingPage() {
             <Button 
               variant="outline" 
               onClick={() => navigate("/login")}
-              className="hidden sm:inline-flex"
+              className="inline-flex"
             >
               Sign in
-            </Button>
-            <Button 
-              onClick={() => navigate("/register")}
-              className="bg-dignoweb-primary hover:bg-dignoweb-primary/90 flex items-center gap-2"
-            >
-              <UserPlus className="h-4 w-4" />
-              Sign Up
             </Button>
           </div>
         </div>
@@ -45,14 +37,6 @@ export default function LandingPage() {
               Take control of your health data with Dignoweb.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              <Button 
-                size="lg" 
-                onClick={() => navigate("/register")}
-                className="bg-white text-dignoweb-primary hover:bg-gray-100 flex items-center gap-2"
-              >
-                <UserPlus className="h-5 w-5" />
-                Create Free Account
-              </Button>
               <Button 
                 variant="outline" 
                 size="lg"
@@ -127,15 +111,15 @@ export default function LandingPage() {
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to take control of your medical records?</h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who trust Dignoweb with their medical information.
+            Join thousands of users who trust Dignoweb with their health information.
           </p>
           <Button 
-            size="lg" 
-            onClick={() => navigate("/register")}
-            className="bg-dignoweb-primary hover:bg-dignoweb-primary/90 flex items-center gap-2"
+            variant="outline" 
+            size="lg"
+            onClick={() => navigate("/login")}
+            className="border-dignoweb-primary text-dignoweb-primary hover:bg-dignoweb-primary/10"
           >
-            <UserPlus className="h-5 w-5" />
-            Sign Up For Free
+            Sign In
           </Button>
         </div>
       </section>
