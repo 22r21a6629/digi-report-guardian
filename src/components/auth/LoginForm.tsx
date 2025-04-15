@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { LogIn } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -17,24 +19,32 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
     
-    // Mock login for now - will replace with Supabase auth later
     try {
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // For demo purposes, navigate to dashboard
-      navigate("/dashboard");
-      
-      toast({
-        title: "Successfully logged in",
-        description: "Welcome back to Dignoweb",
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
+      
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data.user) {
+        toast({
+          title: "Successfully logged in",
+          description: "Welcome back to Dignoweb",
+        });
+        navigate("/dashboard");
+      }
     } catch (error) {
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -78,22 +88,18 @@ export function LoginForm() {
       
       <Button 
         type="submit" 
-        className="w-full bg-dignoweb-primary hover:bg-dignoweb-primary/90"
+        className="w-full bg-dignoweb-primary hover:bg-dignoweb-primary/90 flex items-center justify-center gap-2"
         disabled={isLoading}
       >
-        {isLoading ? "Signing in..." : "Sign in"}
+        {isLoading ? (
+          "Signing in..."
+        ) : (
+          <>
+            <LogIn className="h-4 w-4" />
+            Sign in
+          </>
+        )}
       </Button>
-      
-      <div className="text-center">
-        <span className="text-gray-500">Don't have an account?</span>{" "}
-        <Button 
-          variant="link" 
-          className="px-0 text-dignoweb-primary"
-          onClick={() => navigate("/register")}
-        >
-          Sign up
-        </Button>
-      </div>
     </form>
   );
 }
