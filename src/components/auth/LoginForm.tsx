@@ -26,9 +26,10 @@ export function LoginForm() {
       });
       
       if (error) {
+        console.error("Login error:", error);
         toast({
           title: "Login failed",
-          description: error.message,
+          description: error.message || "Invalid email or password",
           variant: "destructive",
         });
       } else if (data.user) {
@@ -39,12 +40,12 @@ export function LoginForm() {
         navigate("/dashboard");
       }
     } catch (error) {
+      console.error("Unexpected login error:", error);
       toast({
         title: "Login failed",
         description: "An unexpected error occurred",
         variant: "destructive",
       });
-      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }

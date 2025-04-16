@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,43 @@ export function UploadReport() {
   const [fileSelected, setFileSelected] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Get current user
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    
+    getUser();
+    
+    // Check if the storage bucket exists and create it if it doesn't
+    const checkAndCreateBucket = async () => {
+      try {
+        // Check if bucket exists
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const bucketExists = buckets?.some(bucket => bucket.name === 'medical-reports');
+        
+        if (!bucketExists) {
+          // Create the bucket if it doesn't exist
+          const { error } = await supabase.storage.createBucket('medical-reports', {
+            public: true, // Make the bucket public
+            fileSizeLimit: 20971520, // 20MB file size limit
+          });
+          
+          if (error) {
+            console.error('Error creating bucket:', error);
+          }
+        }
+      } catch (err) {
+        console.error('Error checking or creating bucket:', err);
+      }
+    };
+
+    checkAndCreateBucket();
+  }, []);
 
   const handleAddTag = () => {
     if (currentTag.trim() !== "") {
@@ -69,6 +105,15 @@ export function UploadReport() {
       return;
     }
     
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to upload reports",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     setUploadProgress(0);
     
@@ -90,15 +135,12 @@ export function UploadReport() {
       const filePath = `${reportType}/${fileName}`;
       
       // Upload file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data: fileData, error: uploadError } = await supabase.storage
         .from('medical-reports')
         .upload(filePath, fileSelected, {
           cacheControl: '3600',
           upsert: false
         });
-        
-      clearInterval(progressInterval);
-      setUploadProgress(100);
         
       if (uploadError) {
         throw uploadError;
@@ -109,8 +151,35 @@ export function UploadReport() {
         .from('medical-reports')
         .getPublicUrl(filePath);
         
-      // Save report metadata to database (would be implemented when we have Auth)
-      // For now, just show success message
+      // Save report metadata to database
+      const { error: metadataError } = await supabase
+        .from('reports')
+        .insert({
+          user_id: user.id,
+          report_type: reportType,
+          hospital: hospital,
+          report_date: reportDate?.toISOString(),
+          description: description,
+          tags: tags,
+          file_path: filePath,
+          file_name: fileSelected.name,
+          file_size: fileSelected.size,
+          file_type: fileSelected.type,
+          file_url: urlData.publicUrl
+        });
+        
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+        
+      if (metadataError) {
+        console.error("Metadata error:", metadataError);
+        toast({
+          title: "Error saving report metadata",
+          description: metadataError.message,
+          variant: "destructive",
+        });
+        return;
+      }
       
       toast({
         title: "Report uploaded successfully",
