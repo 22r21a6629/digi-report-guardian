@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { LogIn, AlertTriangle } from "lucide-react";
+import { LogIn, AlertTriangle, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -13,6 +14,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -20,6 +22,7 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage(null);
+    setNeedsVerification(false);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -32,6 +35,7 @@ export function LoginForm() {
         
         // Handle specific error codes
         if (error.message === "Email not confirmed") {
+          setNeedsVerification(true);
           setErrorMessage("Please check your email and confirm your account before signing in.");
         } else if (error.message === "Invalid login credentials") {
           setErrorMessage("Incorrect email or password. Please try again.");
@@ -64,12 +68,67 @@ export function LoginForm() {
     }
   };
 
+  const resendVerificationEmail = async () => {
+    if (!email) {
+      setErrorMessage("Please enter your email address first.");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      
+      if (error) {
+        setErrorMessage(`Failed to resend verification email: ${error.message}`);
+        toast({
+          title: "Failed to resend",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setErrorMessage(null);
+        toast({
+          title: "Verification email sent",
+          description: "Please check your inbox and follow the link to verify your email",
+        });
+      }
+    } catch (error) {
+      console.error("Error resending verification:", error);
+      setErrorMessage("An unexpected error occurred. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {errorMessage && (
         <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
           <AlertTriangle className="h-4 w-4 mr-2" />
           <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+      
+      {needsVerification && (
+        <Alert className="bg-blue-50 text-blue-800 border-blue-200">
+          <Mail className="h-4 w-4 mr-2" />
+          <AlertDescription className="flex flex-col gap-2">
+            <span>Your email needs verification before you can sign in.</span>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              className="w-full md:w-auto border-blue-300 text-blue-700 hover:bg-blue-100"
+              onClick={resendVerificationEmail}
+              disabled={isLoading}
+            >
+              Resend verification email
+            </Button>
+          </AlertDescription>
         </Alert>
       )}
       
