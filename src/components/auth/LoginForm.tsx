@@ -1,14 +1,12 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { LogIn } from "lucide-react";
+import { LogIn, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -70,7 +68,7 @@ export function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       {errorMessage && (
         <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
-          <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
+          <AlertTriangle className="h-4 w-4 mr-2" />
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
       )}
