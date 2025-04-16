@@ -34,10 +34,10 @@ export function LoginForm() {
         console.error("Login error:", error);
         
         // Handle specific error codes
-        if (error.message === "Email not confirmed") {
+        if (error.message.includes("Email not confirmed")) {
           setNeedsVerification(true);
           setErrorMessage("Please check your email and confirm your account before signing in.");
-        } else if (error.message === "Invalid login credentials") {
+        } else if (error.message.includes("Invalid login credentials")) {
           setErrorMessage("Incorrect email or password. Please try again.");
         } else {
           setErrorMessage(error.message || "Failed to sign in. Please try again.");
