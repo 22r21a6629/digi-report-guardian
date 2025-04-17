@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,6 @@ export function UploadReport() {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [user, setUser] = useState<any>(null);
-  const [bucketExists, setBucketExists] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -37,30 +35,20 @@ export function UploadReport() {
     // Get current user
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
-      setUser(data.user);
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to upload reports",
+          variant: "destructive",
+        });
+        navigate('/login');
+      }
     };
     
     getUser();
-    
-    // Check if the medical-reports bucket exists
-    const checkBucket = async () => {
-      try {
-        const { data, error } = await supabase.storage.from('medical-reports').list();
-        
-        if (!error) {
-          setBucketExists(true);
-        } else {
-          console.log('Storage bucket check:', error.message);
-          setBucketExists(false);
-        }
-      } catch (err) {
-        console.error('Error checking bucket:', err);
-        setBucketExists(false);
-      }
-    };
-
-    checkBucket();
-  }, []);
+  }, [navigate, toast]);
 
   const handleAddTag = () => {
     if (currentTag.trim() !== "") {
@@ -108,15 +96,7 @@ export function UploadReport() {
         description: "Please log in to upload reports",
         variant: "destructive",
       });
-      return;
-    }
-    
-    if (!bucketExists) {
-      toast({
-        title: "Storage not configured",
-        description: "The storage bucket needs to be set up in Supabase",
-        variant: "destructive",
-      });
+      navigate('/login');
       return;
     }
     
