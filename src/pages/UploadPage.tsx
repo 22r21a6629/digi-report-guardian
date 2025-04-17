@@ -1,9 +1,9 @@
 
-import { useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { UploadReport } from "@/components/reports/UploadReport";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
 
 export default function UploadPage() {
   const { toast } = useToast();
@@ -25,15 +25,25 @@ export default function UploadPage() {
           
           if (error) {
             console.error('Error creating bucket:', error);
+            toast({
+              title: "Storage Error",
+              description: "There was a problem setting up the storage. Please try again later.",
+              variant: "destructive"
+            });
           }
         }
       } catch (err) {
         console.error('Error checking or creating bucket:', err);
+        toast({
+          title: "Storage Error",
+          description: "There was a problem accessing the storage. Please try again later.",
+          variant: "destructive"
+        });
       }
     };
 
     checkAndCreateBucket();
-  }, []);
+  }, [toast]);
 
   return (
     <AppLayout title="Upload Report">

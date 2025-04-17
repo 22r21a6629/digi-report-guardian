@@ -1,12 +1,25 @@
 
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, Filter } from "lucide-react";
+import { Eye, Download, Filter, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 
 type Report = {
   id: string;
@@ -52,6 +65,27 @@ export default function ReportsPage() {
     };
     
     fetchReports();
+    
+    // Set up a subscription to listen for new reports
+    const channel = supabase
+      .channel('reports-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reports'
+        },
+        () => {
+          // Refetch reports when a new one is added
+          fetchReports();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [toast]);
   
   // Get report type for display and filtering
@@ -83,6 +117,11 @@ export default function ReportsPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      toast({
+        title: "Download started",
+        description: `Downloading ${fileName}`,
+      });
     } catch (error) {
       console.error('Download error:', error);
       toast({
@@ -159,32 +198,38 @@ export default function ReportsPage() {
               <div className="text-center py-8">Loading reports...</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-2 text-sm font-medium">File Name</th>
-                      <th className="text-left py-3 px-2 text-sm font-medium">Type</th>
-                      <th className="text-left py-3 px-2 text-sm font-medium">Date</th>
-                      <th className="text-left py-3 px-2 text-sm font-medium">Hospital</th>
-                      <th className="text-right py-3 px-2 text-sm font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>File Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Hospital</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {filteredReports.length > 0 ? (
                       filteredReports.map((report) => (
-                        <tr key={report.id} className="border-b last:border-0 hover:bg-gray-50">
-                          <td className="py-3 px-2 text-sm">{report.file_name}</td>
-                          <td className="py-3 px-2 text-sm">{getReportTypeDisplay(report.report_type)}</td>
-                          <td className="py-3 px-2 text-sm">
+                        <TableRow key={report.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                              {report.file_name}
+                            </div>
+                          </TableCell>
+                          <TableCell>{getReportTypeDisplay(report.report_type)}</TableCell>
+                          <TableCell>
                             {report.report_date ? new Date(report.report_date).toLocaleDateString() : '-'}
-                          </td>
-                          <td className="py-3 px-2 text-sm">{report.hospital}</td>
-                          <td className="py-3 px-2 text-sm text-right">
+                          </TableCell>
+                          <TableCell>{report.hospital}</TableCell>
+                          <TableCell className="text-right">
                             <div className="flex justify-end space-x-2">
                               <Button 
                                 size="icon" 
                                 variant="ghost"
                                 onClick={() => window.open(report.file_url, '_blank')}
+                                title="View"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -192,24 +237,25 @@ export default function ReportsPage() {
                                 size="icon" 
                                 variant="ghost"
                                 onClick={() => handleDownload(report.file_url, report.file_name)}
+                                title="Download"
                               >
                                 <Download className="h-4 w-4" />
                               </Button>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))
                     ) : (
-                      <tr>
-                        <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
                           {searchTerm || filterStatus 
                             ? "No reports found matching your criteria." 
                             : "You haven't uploaded any reports yet."}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>

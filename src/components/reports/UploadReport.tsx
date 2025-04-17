@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ export function UploadReport() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Get current user
@@ -183,7 +184,7 @@ export function UploadReport() {
       
       toast({
         title: "Report uploaded successfully",
-        description: "Your medical report has been uploaded",
+        description: "Your medical report has been uploaded and saved to My Reports",
       });
       
       // Reset form
@@ -200,6 +201,11 @@ export function UploadReport() {
       if (fileInput) {
         fileInput.value = '';
       }
+      
+      // Navigate to reports page after successful upload
+      setTimeout(() => {
+        navigate('/reports');
+      }, 1500);
     } catch (error) {
       console.error("Upload error:", error);
       toast({
