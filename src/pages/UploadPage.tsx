@@ -3,51 +3,62 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { UploadReport } from "@/components/reports/UploadReport";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function UploadPage() {
   const { toast } = useToast();
+  const [bucketError, setBucketError] = useState(false);
 
   useEffect(() => {
-    // Check if the storage bucket exists and create it if it doesn't
-    const checkAndCreateBucket = async () => {
+    // Check if the storage bucket exists by attempting to list files
+    const checkBucket = async () => {
       try {
-        // Check if bucket exists
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const bucketExists = buckets?.some(bucket => bucket.name === 'medical-reports');
+        const { data, error } = await supabase.storage.from('medical-reports').list();
         
-        if (!bucketExists) {
-          // Create the bucket if it doesn't exist
-          const { error } = await supabase.storage.createBucket('medical-reports', {
-            public: true, // Make the bucket public
-            fileSizeLimit: 20971520, // 20MB file size limit
+        if (error && error.message.includes('The resource was not found')) {
+          // Bucket doesn't exist, let the user know they need to create it in Supabase dashboard
+          setBucketError(true);
+          toast({
+            title: "Storage Setup Required",
+            description: "The medical-reports storage bucket needs to be created in the Supabase dashboard.",
+            variant: "destructive",
+            duration: 10000,
           });
-          
-          if (error) {
-            console.error('Error creating bucket:', error);
-            toast({
-              title: "Storage Error",
-              description: "There was a problem setting up the storage. Please try again later.",
-              variant: "destructive"
-            });
-          }
         }
       } catch (err) {
-        console.error('Error checking or creating bucket:', err);
+        console.error('Error checking bucket:', err);
+        setBucketError(true);
         toast({
           title: "Storage Error",
-          description: "There was a problem accessing the storage. Please try again later.",
-          variant: "destructive"
+          description: "There was a problem accessing the storage. Please check Supabase settings.",
+          variant: "destructive",
+          duration: 5000,
         });
       }
     };
 
-    checkAndCreateBucket();
+    checkBucket();
   }, [toast]);
 
   return (
     <AppLayout title="Upload Report">
-      <UploadReport />
+      {bucketError ? (
+        <div className="my-8 p-6 bg-destructive/10 rounded-lg border border-destructive">
+          <h3 className="text-lg font-medium mb-2">Storage Setup Required</h3>
+          <p className="mb-4">
+            To enable file uploads, you need to create a storage bucket named 'medical-reports' in your Supabase dashboard.
+          </p>
+          <ol className="list-decimal ml-5 space-y-2">
+            <li>Go to your Supabase dashboard</li>
+            <li>Navigate to Storage</li>
+            <li>Create a new bucket named 'medical-reports'</li>
+            <li>Set the bucket to public or configure appropriate policies</li>
+            <li>Refresh this page</li>
+          </ol>
+        </div>
+      ) : (
+        <UploadReport />
+      )}
     </AppLayout>
   );
 }

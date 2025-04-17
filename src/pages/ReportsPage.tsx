@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, Filter, FileText } from "lucide-react";
+import { Eye, Download, Filter, FileText, Search, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,6 +20,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 
 type Report = {
   id: string;
@@ -99,14 +100,23 @@ export default function ReportsPage() {
       return false;
     }
     
-    // Apply search term if entered
-    if (searchTerm && !report.file_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !report.hospital.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
+    // Apply search term if entered - expanded to search across multiple fields
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      return (
+        report.file_name.toLowerCase().includes(search) ||
+        report.hospital.toLowerCase().includes(search) ||
+        (report.description?.toLowerCase().includes(search) || false) ||
+        getReportTypeDisplay(report.report_type).toLowerCase().includes(search)
+      );
     }
     
     return true;
   });
+
+  const clearSearch = () => {
+    setSearchTerm("");
+  };
   
   const handleDownload = async (fileUrl: string, fileName: string) => {
     try {
@@ -136,14 +146,26 @@ export default function ReportsPage() {
     <AppLayout title="My Reports">
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative max-w-md">
-            <input
-              type="text"
-              placeholder="Search reports..."
-              className="pl-3 pr-10 py-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:ring-dignoweb-primary"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="relative max-w-md w-full">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search reports..."
+                className="pl-9 pr-10 py-2 w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button 
+                  className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+                  onClick={clearSearch}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
           
           <div className="flex flex-wrap gap-2">

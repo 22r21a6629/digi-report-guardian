@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export function UploadReport() {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [user, setUser] = useState<any>(null);
+  const [bucketExists, setBucketExists] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -40,30 +42,24 @@ export function UploadReport() {
     
     getUser();
     
-    // Check if the storage bucket exists and create it if it doesn't
-    const checkAndCreateBucket = async () => {
+    // Check if the medical-reports bucket exists
+    const checkBucket = async () => {
       try {
-        // Check if bucket exists
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const bucketExists = buckets?.some(bucket => bucket.name === 'medical-reports');
+        const { data, error } = await supabase.storage.from('medical-reports').list();
         
-        if (!bucketExists) {
-          // Create the bucket if it doesn't exist
-          const { error } = await supabase.storage.createBucket('medical-reports', {
-            public: true, // Make the bucket public
-            fileSizeLimit: 20971520, // 20MB file size limit
-          });
-          
-          if (error) {
-            console.error('Error creating bucket:', error);
-          }
+        if (!error) {
+          setBucketExists(true);
+        } else {
+          console.log('Storage bucket check:', error.message);
+          setBucketExists(false);
         }
       } catch (err) {
-        console.error('Error checking or creating bucket:', err);
+        console.error('Error checking bucket:', err);
+        setBucketExists(false);
       }
     };
 
-    checkAndCreateBucket();
+    checkBucket();
   }, []);
 
   const handleAddTag = () => {
@@ -110,6 +106,15 @@ export function UploadReport() {
       toast({
         title: "Authentication required",
         description: "Please log in to upload reports",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!bucketExists) {
+      toast({
+        title: "Storage not configured",
+        description: "The storage bucket needs to be set up in Supabase",
         variant: "destructive",
       });
       return;
