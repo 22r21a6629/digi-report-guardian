@@ -6,20 +6,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function UploadPage() {
   const { toast } = useToast();
   const [bucketError, setBucketError] = useState(false);
   const [isCheckingBucket, setIsCheckingBucket] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if the storage bucket exists by attempting to list files
+    // Check if the storage bucket exists by attempting to get bucket info
     const checkBucket = async () => {
       setIsCheckingBucket(true);
       try {
-        const { data, error } = await supabase.storage.from('medical-reports').list();
+        const { data, error } = await supabase.storage.getBucket('medical-reports');
         
-        if (error && error.message.includes('The resource was not found')) {
+        if (error) {
           // Bucket doesn't exist, let the user know they need to create it in Supabase dashboard
           setBucketError(true);
           toast({
@@ -27,15 +29,6 @@ export default function UploadPage() {
             description: "The medical-reports storage bucket needs to be created in the Supabase dashboard.",
             variant: "destructive",
             duration: 10000,
-          });
-        } else if (error) {
-          console.error('Storage error:', error);
-          setBucketError(true);
-          toast({
-            title: "Storage Error",
-            description: error.message || "There was a problem accessing the storage.",
-            variant: "destructive",
-            duration: 5000,
           });
         } else {
           // Bucket exists, clear any previous errors
@@ -60,6 +53,10 @@ export default function UploadPage() {
 
   const openSupabaseDashboard = () => {
     window.open('https://qbjpurniyjebdvwxzegf.supabase.co/dashboard/project/storage/buckets', '_blank');
+  };
+
+  const goToReports = () => {
+    navigate('/reports');
   };
 
   return (
@@ -90,6 +87,9 @@ export default function UploadPage() {
             </Button>
             <Button variant="outline" onClick={() => window.location.reload()}>
               Refresh Page
+            </Button>
+            <Button variant="secondary" onClick={goToReports}>
+              View My Reports
             </Button>
           </div>
         </div>

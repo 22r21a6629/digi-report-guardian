@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -119,6 +120,14 @@ export function UploadReport() {
       const fileExt = fileSelected.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${reportType}/${fileName}`;
+      
+      // Check if bucket exists before upload
+      const { data: bucketData, error: bucketError } = await supabase.storage
+        .getBucket('medical-reports');
+      
+      if (bucketError) {
+        throw new Error('Storage bucket not found. Please create a medical-reports bucket in your Supabase dashboard.');
+      }
       
       // Upload file to Supabase Storage
       const { data: fileData, error: uploadError } = await supabase.storage

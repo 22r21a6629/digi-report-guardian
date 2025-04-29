@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, Filter, FileText, Search, X } from "lucide-react";
+import { Eye, Download, Filter, FileText, Search, X, Upload } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -21,6 +21,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 
 type Report = {
   id: string;
@@ -40,6 +41,7 @@ export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchReports = async () => {
@@ -59,6 +61,7 @@ export default function ReportsPage() {
         });
         setReports([]);
       } else {
+        console.log('Reports fetched:', data?.length || 0);
         setReports(data || []);
       }
       
@@ -77,7 +80,8 @@ export default function ReportsPage() {
           schema: 'public',
           table: 'reports'
         },
-        () => {
+        (payload) => {
+          console.log('New report added:', payload);
           // Refetch reports when a new one is added
           fetchReports();
         }
@@ -92,6 +96,17 @@ export default function ReportsPage() {
   // Get report type for display and filtering
   const getReportTypeDisplay = (type: string) => {
     return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+  
+  // Get file icon based on file type
+  const getFileIcon = (fileType: string) => {
+    if (fileType.startsWith("image/")) {
+      return <Image className="h-4 w-4 mr-2 text-muted-foreground" />;
+    } else if (fileType === "application/pdf") {
+      return <FileText className="h-4 w-4 mr-2 text-muted-foreground" />;
+    } else {
+      return <File className="h-4 w-4 mr-2 text-muted-foreground" />;
+    }
   };
   
   const filteredReports = reports.filter(report => {
@@ -140,6 +155,10 @@ export default function ReportsPage() {
         variant: "destructive",
       });
     }
+  };
+  
+  const handleGoToUpload = () => {
+    navigate('/upload');
   };
   
   return (
@@ -210,9 +229,9 @@ export default function ReportsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle>All Reports</CardTitle>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Advanced Filter
+            <Button onClick={handleGoToUpload}>
+              <Upload className="h-4 w-4 mr-2" />
+              Upload New Report
             </Button>
           </CardHeader>
           <CardContent>
@@ -236,7 +255,7 @@ export default function ReportsPage() {
                         <TableRow key={report.id}>
                           <TableCell className="font-medium">
                             <div className="flex items-center">
-                              <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                              {getFileIcon(report.file_type)}
                               {report.file_name}
                             </div>
                           </TableCell>
@@ -272,7 +291,15 @@ export default function ReportsPage() {
                         <TableCell colSpan={5} className="h-24 text-center">
                           {searchTerm || filterStatus 
                             ? "No reports found matching your criteria." 
-                            : "You haven't uploaded any reports yet."}
+                            : (
+                              <div className="flex flex-col items-center">
+                                <p className="mb-4">You haven't uploaded any reports yet.</p>
+                                <Button onClick={handleGoToUpload}>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Upload Your First Report
+                                </Button>
+                              </div>
+                            )}
                         </TableCell>
                       </TableRow>
                     )}
