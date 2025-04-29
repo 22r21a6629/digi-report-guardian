@@ -19,10 +19,10 @@ export default function UploadPage() {
     const checkBucket = async () => {
       setIsCheckingBucket(true);
       try {
-        const { data, error } = await supabase.storage.getBucket('medical-reports');
+        const { error } = await supabase.storage.getBucket('medical-reports');
         
         if (error) {
-          // Bucket doesn't exist, let the user know they need to create it in Supabase dashboard
+          console.error('Bucket error:', error);
           setBucketError(true);
           toast({
             title: "Storage Setup Required",
