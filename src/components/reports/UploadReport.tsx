@@ -11,7 +11,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Upload, File, Image, FileText } from "lucide-react";
+import { Upload, FileText, Image as ImageIcon, File as FileIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -339,11 +339,11 @@ export function UploadReport() {
                 {fileSelected ? (
                   <div className="flex items-center">
                     {fileSelected.type.startsWith("image/") ? (
-                      <Image className="mr-2 h-4 w-4" />
+                      <ImageIcon className="mr-2 h-4 w-4" />
                     ) : fileSelected.type === "application/pdf" ? (
                       <FileText className="mr-2 h-4 w-4" />
                     ) : (
-                      <File className="mr-2 h-4 w-4" />
+                      <FileIcon className="mr-2 h-4 w-4" />
                     )}
                     <span className="text-sm">{fileSelected.name}</span>
                     <Badge className="ml-2">{(fileSelected.size / 1024).toFixed(1)} KB</Badge>

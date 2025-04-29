@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, Filter, FileText, Search, X, Upload } from "lucide-react";
+import { Eye, Download, FileText, Search, X, Upload, File as FileIcon, Image as ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -101,11 +101,11 @@ export default function ReportsPage() {
   // Get file icon based on file type
   const getFileIcon = (fileType: string) => {
     if (fileType.startsWith("image/")) {
-      return <Image className="h-4 w-4 mr-2 text-muted-foreground" />;
+      return <ImageIcon className="h-4 w-4 mr-2 text-muted-foreground" />;
     } else if (fileType === "application/pdf") {
       return <FileText className="h-4 w-4 mr-2 text-muted-foreground" />;
     } else {
-      return <File className="h-4 w-4 mr-2 text-muted-foreground" />;
+      return <FileIcon className="h-4 w-4 mr-2 text-muted-foreground" />;
     }
   };
   
