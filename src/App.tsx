@@ -13,6 +13,7 @@ import DashboardPage from "./pages/DashboardPage";
 import UploadPage from "./pages/UploadPage";
 import HospitalsPage from "./pages/HospitalsPage";
 import ReportsPage from "./pages/ReportsPage";
+import SearchPage from "./pages/SearchPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -74,6 +75,11 @@ const App = () => {
             <Route path="/reports" element={
               <ProtectedRoute>
                 <ReportsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/search" element={
+              <ProtectedRoute>
+                <SearchPage />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={

@@ -128,6 +128,10 @@ export function UploadReport() {
         });
         
       if (uploadError) {
+        // Check for RLS policy violation
+        if (uploadError.message.includes('violates row-level security policy')) {
+          throw new Error('Permission denied: You do not have access to upload files. Please check your permissions or contact the administrator.');
+        }
         throw uploadError;
       }
       
