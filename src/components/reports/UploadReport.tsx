@@ -107,12 +107,16 @@ export function UploadReport() {
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${reportType}/${fileName}`;
       
-      // Check if bucket exists before upload
-      const { data: bucketData, error: bucketError } = await supabase.storage
-        .getBucket('medical-reports');
-      
-      if (bucketError) {
-        throw new Error('Storage bucket not found. Please create a medical-reports bucket in your Supabase dashboard.');
+      // First verify the bucket exists before attempting upload
+      const { data: bucketData, error: bucketCheckError } = await supabase.storage
+        .from('medical-reports')
+        .list();
+        
+      if (bucketCheckError) {
+        if (bucketCheckError.message.includes('does not exist')) {
+          throw new Error('Storage bucket not found. Please create a medical-reports bucket in your Supabase dashboard.');
+        }
+        throw bucketCheckError;
       }
       
       // Upload file to Supabase Storage
