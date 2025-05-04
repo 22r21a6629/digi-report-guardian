@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, FileText, Search, X, Upload, File as FileIcon, Image as ImageIcon } from "lucide-react";
+import { Eye, Download, FileText, Search, X, Upload, File as FileIcon, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -22,6 +22,17 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Report = {
   id: string;
@@ -32,6 +43,7 @@ type Report = {
   file_name: string;
   file_url: string;
   file_type: string;
+  file_path: string;
   created_at: string;
 };
 
@@ -40,34 +52,35 @@ export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  useEffect(() => {
-    const fetchReports = async () => {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('reports')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching reports:', error);
-        toast({
-          title: "Failed to load reports",
-          description: error.message,
-          variant: "destructive"
-        });
-        setReports([]);
-      } else {
-        console.log('Reports fetched:', data?.length || 0);
-        setReports(data || []);
-      }
-      
-      setLoading(false);
-    };
+  const fetchReports = async () => {
+    setLoading(true);
     
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching reports:', error);
+      toast({
+        title: "Failed to load reports",
+        description: error.message,
+        variant: "destructive"
+      });
+      setReports([]);
+    } else {
+      console.log('Reports fetched:', data?.length || 0);
+      setReports(data || []);
+    }
+    
+    setLoading(false);
+  };
+  
+  useEffect(() => {
     fetchReports();
     
     // Set up a subscription to listen for new reports
@@ -159,6 +172,60 @@ export default function ReportsPage() {
   
   const handleGoToUpload = () => {
     navigate('/upload');
+  };
+
+  const handleDeleteReport = async () => {
+    if (!reportToDelete) return;
+
+    try {
+      // First delete the file from storage
+      const { error: storageError } = await supabase.storage
+        .from('medical-reports')
+        .remove([reportToDelete.file_path]);
+      
+      if (storageError) {
+        console.error('Error deleting file:', storageError);
+        toast({
+          title: "Error deleting file",
+          description: storageError.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Then delete the report from the database
+      const { error: dbError } = await supabase
+        .from('reports')
+        .delete()
+        .eq('id', reportToDelete.id);
+      
+      if (dbError) {
+        console.error('Error deleting report:', dbError);
+        toast({
+          title: "Error deleting report",
+          description: dbError.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Update local state to remove the deleted report
+      setReports(reports.filter(report => report.id !== reportToDelete.id));
+      
+      toast({
+        title: "Report deleted",
+        description: "The report has been successfully deleted."
+      });
+      
+      setReportToDelete(null);
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Delete failed",
+        description: error instanceof Error ? error.message : "There was a problem deleting your report",
+        variant: "destructive"
+      });
+    }
   };
   
   return (
@@ -282,6 +349,36 @@ export default function ReportsPage() {
                               >
                                 <Download className="h-4 w-4" />
                               </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost"
+                                    title="Delete"
+                                    onClick={() => setReportToDelete(report)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500 hover:text-red-700" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure you want to delete this report?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will permanently delete the report
+                                      "{report.file_name}" and remove the associated file from storage.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={() => setReportToDelete(null)}>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={handleDeleteReport}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -310,6 +407,28 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Global delete confirmation dialog */}
+      <AlertDialog open={!!reportToDelete && reportToDelete.id !== ''} onOpenChange={(open) => !open && setReportToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this report?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the report
+              "{reportToDelete?.file_name}" and remove the associated file from storage.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setReportToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteReport}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
