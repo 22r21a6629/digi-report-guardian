@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Upload, Clock, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function DashboardStats() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleCardClick = (destination: string, title: string) => {
     navigate(destination);
@@ -18,7 +20,7 @@ export function DashboardStats() {
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       <Card 
         className="border-l-4 border-l-dignoweb-primary hover:shadow-md transition-shadow cursor-pointer"
         onClick={() => handleCardClick("/reports", "Total Reports")}
@@ -28,9 +30,9 @@ export function DashboardStats() {
           <FileText className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">42</div>
+          <div className="text-2xl font-bold">-</div>
           <p className="text-xs text-muted-foreground">
-            +4 from last month
+            View all reports
           </p>
         </CardContent>
       </Card>
@@ -44,9 +46,9 @@ export function DashboardStats() {
           <Upload className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">7</div>
+          <div className="text-2xl font-bold">-</div>
           <p className="text-xs text-muted-foreground">
-            In the last 30 days
+            Upload new reports
           </p>
         </CardContent>
       </Card>
@@ -60,9 +62,9 @@ export function DashboardStats() {
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">3</div>
+          <div className="text-2xl font-bold">-</div>
           <p className="text-xs text-muted-foreground">
-            Waiting for doctor review
+            Waiting for review
           </p>
         </CardContent>
       </Card>
@@ -76,7 +78,7 @@ export function DashboardStats() {
           <AlertCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">1</div>
+          <div className="text-2xl font-bold">-</div>
           <p className="text-xs text-muted-foreground">
             Requires attention
           </p>

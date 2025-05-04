@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Notification = {
   id: string;
@@ -40,6 +41,7 @@ const mockNotifications: Notification[] = [
 export function NotificationBar() {
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [expanded, setExpanded] = useState(false);
+  const isMobile = useIsMobile();
 
   const dismissNotification = (id: string) => {
     setNotifications(notifications.filter(notification => notification.id !== id));
@@ -64,7 +66,7 @@ export function NotificationBar() {
   }
 
   return (
-    <div className="mb-6">
+    <div className="mb-4 sm:mb-6">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
           <Bell className="h-5 w-5 text-dignoweb-primary" />
@@ -83,7 +85,10 @@ export function NotificationBar() {
 
       <div className="space-y-2">
         {displayedNotifications.map((notification) => (
-          <Alert key={notification.id} className={`${getAlertStyle(notification.type)} relative pr-10`}>
+          <Alert 
+            key={notification.id} 
+            className={`${getAlertStyle(notification.type)} relative pr-10 ${isMobile ? 'text-sm p-3' : ''}`}
+          >
             <Button
               variant="ghost" 
               size="icon" 
@@ -92,10 +97,12 @@ export function NotificationBar() {
             >
               <X className="h-4 w-4" />
             </Button>
-            <AlertTitle className="text-sm font-medium">{notification.title}</AlertTitle>
-            <AlertDescription className="text-sm mt-1">
+            <AlertTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>
+              {notification.title}
+            </AlertTitle>
+            <AlertDescription className={`${isMobile ? 'text-xs' : 'text-sm'} mt-1`}>
               {notification.message}
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground mt-1`}>
                 {notification.date}
               </div>
             </AlertDescription>
