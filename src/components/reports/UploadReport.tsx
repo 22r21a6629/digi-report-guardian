@@ -105,7 +105,7 @@ export function UploadReport() {
       // Create a unique file name
       const fileExt = fileSelected.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `${reportType}/${fileName}`;
+      const filePath = `${user.id}/${reportType}/${fileName}`;
       
       // First verify the bucket exists before attempting upload
       const { data: bucketData, error: bucketCheckError } = await supabase.storage
@@ -113,10 +113,7 @@ export function UploadReport() {
         .list();
         
       if (bucketCheckError) {
-        if (bucketCheckError.message.includes('does not exist')) {
-          throw new Error('Storage bucket not found. Please create a medical-reports bucket in your Supabase dashboard.');
-        }
-        throw bucketCheckError;
+        throw new Error(`Storage error: ${bucketCheckError.message}. Please verify the storage bucket exists and is properly configured.`);
       }
       
       // Upload file to Supabase Storage
@@ -128,7 +125,6 @@ export function UploadReport() {
         });
         
       if (uploadError) {
-        // Check for RLS policy violation
         if (uploadError.message.includes('violates row-level security policy')) {
           throw new Error('Permission denied: You do not have access to upload files. Please check your permissions or contact the administrator.');
         }
