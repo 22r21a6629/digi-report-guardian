@@ -29,7 +29,7 @@ const Index = () => {
 
           // If user has reports, they need to complete profile first
           if (reports && reports.length > 0) {
-            toast({
+            toast.info({
               title: "Complete your profile",
               description: "Please complete your profile information"
             });
