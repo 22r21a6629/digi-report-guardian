@@ -84,34 +84,48 @@ export const useToast = () => {
   };
 };
 
-// Create a proper callable toast function
-const toast = {
-  // Basic toast function that can be called directly
-  (props: { title?: string; description?: string; variant?: "default" | "destructive" }): void {
-    toastSonner(props.title || "", { 
-      description: props.description,
-      className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "" 
-    });
-  },
-  // Named methods for different toast types
-  error(props: { title?: string; description?: string }): void {
-    toastSonner.error(props.title || "", { description: props.description });
-  },
-  success(props: { title?: string; description?: string }): void {
-    toastSonner.success(props.title || "", { description: props.description });
-  },
-  info(props: { title?: string; description?: string }): void {
-    toastSonner(props.title || "", { description: props.description });
-  },
-  warning(props: { title?: string; description?: string }): void {
-    toastSonner.warning(props.title || "", { description: props.description });
-  },
-  action(props: { title?: string; description?: string }): void {
-    toastSonner(props.title || "", { description: props.description });
-  },
-  // Include other sonner properties
-  ...toastSonner
+// Define the toast function interface
+interface ToastFunction {
+  (props: { title?: string; description?: string; variant?: "default" | "destructive" }): void;
+  error: (props: { title?: string; description?: string }) => void;
+  success: (props: { title?: string; description?: string }) => void;
+  info: (props: { title?: string; description?: string }) => void;
+  warning: (props: { title?: string; description?: string }) => void;
+  action: (props: { title?: string; description?: string }) => void;
+}
+
+// Create a base function
+const toastFn = ((props: { title?: string; description?: string; variant?: "default" | "destructive" }) => {
+  toastSonner(props.title || "", { 
+    description: props.description,
+    className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "" 
+  });
+}) as ToastFunction;
+
+// Add methods to it
+toastFn.error = (props: { title?: string; description?: string }) => {
+  toastSonner.error(props.title || "", { description: props.description });
 };
 
-export { toast };
+toastFn.success = (props: { title?: string; description?: string }) => {
+  toastSonner.success(props.title || "", { description: props.description });
+};
+
+toastFn.info = (props: { title?: string; description?: string }) => {
+  toastSonner(props.title || "", { description: props.description });
+};
+
+toastFn.warning = (props: { title?: string; description?: string }) => {
+  toastSonner.warning(props.title || "", { description: props.description });
+};
+
+toastFn.action = (props: { title?: string; description?: string }) => {
+  toastSonner(props.title || "", { description: props.description });
+};
+
+// Add other properties from toastSonner
+Object.assign(toastFn, toastSonner);
+
+// Export the toast function
+export const toast = toastFn;
 export type { ToasterToast };
