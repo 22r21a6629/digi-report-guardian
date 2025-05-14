@@ -80,30 +80,38 @@ export const useToast = () => {
 
   return {
     ...context,
-    toast: toast
+    toast
   };
 };
 
-// Expose a simpler toast function that works similar to sonner
-export const toast = {
-  ...toastSonner,
-  // Add compatibility with shadcn toast format
-  error: (props: { title?: string; description?: string; }) => {
+// Create a proper callable toast function
+const toast = {
+  // Basic toast function that can be called directly
+  (props: { title?: string; description?: string; variant?: "default" | "destructive" }): void {
+    toastSonner(props.title || "", { 
+      description: props.description,
+      className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "" 
+    });
+  },
+  // Named methods for different toast types
+  error(props: { title?: string; description?: string }): void {
     toastSonner.error(props.title || "", { description: props.description });
   },
-  success: (props: { title?: string; description?: string; }) => {
+  success(props: { title?: string; description?: string }): void {
     toastSonner.success(props.title || "", { description: props.description });
   },
-  info: (props: { title?: string; description?: string; }) => {
+  info(props: { title?: string; description?: string }): void {
     toastSonner(props.title || "", { description: props.description });
   },
-  warning: (props: { title?: string; description?: string; }) => {
+  warning(props: { title?: string; description?: string }): void {
     toastSonner.warning(props.title || "", { description: props.description });
   },
-  // Fallback for general toast usage with shadcn format
-  action: (props: { title?: string; description?: string; }) => {
+  action(props: { title?: string; description?: string }): void {
     toastSonner(props.title || "", { description: props.description });
-  }
+  },
+  // Include other sonner properties
+  ...toastSonner
 };
 
+export { toast };
 export type { ToasterToast };
