@@ -1,5 +1,5 @@
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, createContext, useContext } from "react";
 import type { Toast as ToastPrimitive } from "@/components/ui/toast";
 import { toast as toastSonner } from "sonner";
 
@@ -13,9 +13,6 @@ type ToasterToast = ToastProps & {
 };
 
 const TOAST_LIMIT = 5;
-const TOAST_REMOVE_DELAY = 1000;
-
-type ToasterToastActionElement = React.ReactElement;
 
 let count = 0;
 
@@ -81,7 +78,10 @@ export const useToast = () => {
     throw new Error("useToast must be used within a ToastProvider");
   }
 
-  return context;
+  return {
+    ...context,
+    toast: toast
+  };
 };
 
 // Expose a simpler toast function that works similar to sonner
@@ -107,4 +107,3 @@ export const toast = {
 };
 
 export type { ToasterToast };
-
