@@ -84,43 +84,59 @@ export const useToast = () => {
   };
 };
 
-// Define the toast function interface
+// Define the toast function interface with duration property
 interface ToastFunction {
-  (props: { title?: string; description?: string; variant?: "default" | "destructive" }): void;
-  error: (props: { title?: string; description?: string }) => void;
-  success: (props: { title?: string; description?: string }) => void;
-  info: (props: { title?: string; description?: string }) => void;
-  warning: (props: { title?: string; description?: string }) => void;
-  action: (props: { title?: string; description?: string }) => void;
+  (props: { title?: string; description?: string; variant?: "default" | "destructive"; duration?: number }): void;
+  error: (props: { title?: string; description?: string; duration?: number }) => void;
+  success: (props: { title?: string; description?: string; duration?: number }) => void;
+  info: (props: { title?: string; description?: string; duration?: number }) => void;
+  warning: (props: { title?: string; description?: string; duration?: number }) => void;
+  action: (props: { title?: string; description?: string; duration?: number }) => void;
 }
 
 // Create a base function
-const toastFn = ((props: { title?: string; description?: string; variant?: "default" | "destructive" }) => {
+const toastFn = ((props: { title?: string; description?: string; variant?: "default" | "destructive"; duration?: number }) => {
   toastSonner(props.title || "", { 
     description: props.description,
-    className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "" 
+    className: props.variant === "destructive" ? "bg-destructive text-destructive-foreground" : "",
+    duration: props.duration
   });
 }) as ToastFunction;
 
 // Add methods to it
-toastFn.error = (props: { title?: string; description?: string }) => {
-  toastSonner.error(props.title || "", { description: props.description });
+toastFn.error = (props: { title?: string; description?: string; duration?: number }) => {
+  toastSonner.error(props.title || "", { 
+    description: props.description,
+    duration: props.duration 
+  });
 };
 
-toastFn.success = (props: { title?: string; description?: string }) => {
-  toastSonner.success(props.title || "", { description: props.description });
+toastFn.success = (props: { title?: string; description?: string; duration?: number }) => {
+  toastSonner.success(props.title || "", { 
+    description: props.description,
+    duration: props.duration
+  });
 };
 
-toastFn.info = (props: { title?: string; description?: string }) => {
-  toastSonner(props.title || "", { description: props.description });
+toastFn.info = (props: { title?: string; description?: string; duration?: number }) => {
+  toastSonner(props.title || "", { 
+    description: props.description,
+    duration: props.duration
+  });
 };
 
-toastFn.warning = (props: { title?: string; description?: string }) => {
-  toastSonner.warning(props.title || "", { description: props.description });
+toastFn.warning = (props: { title?: string; description?: string; duration?: number }) => {
+  toastSonner.warning(props.title || "", { 
+    description: props.description,
+    duration: props.duration
+  });
 };
 
-toastFn.action = (props: { title?: string; description?: string }) => {
-  toastSonner(props.title || "", { description: props.description });
+toastFn.action = (props: { title?: string; description?: string; duration?: number }) => {
+  toastSonner(props.title || "", { 
+    description: props.description,
+    duration: props.duration
+  });
 };
 
 // Add other properties from toastSonner
