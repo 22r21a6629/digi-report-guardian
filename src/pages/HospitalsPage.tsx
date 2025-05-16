@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building, MapPin, Search } from "lucide-react";
 
-// Mock data for hospitals
+// Mock data for hospitals including Hyderabad hospitals
 const mockHospitals: Hospital[] = [
   {
     id: "1",
@@ -31,43 +31,53 @@ const mockHospitals: Hospital[] = [
   },
   {
     id: "3",
-    name: "Health First Medical Center",
-    location: "789 Elm Street, Chicago, IL",
-    specialty: "Neurology",
+    name: "Apollo Hospitals Hyderabad",
+    location: "Jubilee Hills, Hyderabad, Telangana",
+    specialty: "Multi-Specialty",
     image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
     rating: 4.8,
-    contact: "+1 (555) 456-7890",
-    description: "Health First Medical Center offers specialized neurological services and treatments for various brain and nervous system disorders. Our neurologists use cutting-edge technology."
+    contact: "+91 (040) 2360-7777",
+    description: "Apollo Hospitals Hyderabad is a leading healthcare institution providing world-class medical services with a team of highly qualified doctors and state-of-the-art technology."
   },
   {
     id: "4",
-    name: "Sunshine Pediatric Hospital",
-    location: "321 Oak Drive, San Francisco, CA",
-    specialty: "Pediatrics",
+    name: "KIMS Hospital Hyderabad",
+    location: "Secunderabad, Hyderabad, Telangana",
+    specialty: "Cardiology",
     image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2053&q=80",
-    rating: 4.9,
-    contact: "+1 (555) 789-0123",
-    description: "Sunshine Pediatric Hospital is dedicated to providing compassionate care for children of all ages. Our child-friendly environment and specialized pediatric services ensure the best care for your kids."
+    rating: 4.7,
+    contact: "+91 (040) 4488-5000",
+    description: "KIMS Hospital in Hyderabad offers advanced cardiac care with modern facilities and experienced cardiologists providing comprehensive heart treatments and surgeries."
   },
   {
     id: "5",
-    name: "Metro Orthopedic Institute",
-    location: "567 Pine Street, Austin, TX",
-    specialty: "Orthopedics",
+    name: "Care Hospitals Hyderabad",
+    location: "Banjara Hills, Hyderabad, Telangana",
+    specialty: "Neurology",
     image: "https://images.unsplash.com/photo-1696446701726-c693a255d01c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
     rating: 4.6,
-    contact: "+1 (555) 234-5678",
-    description: "Metro Orthopedic Institute specializes in the treatment of musculoskeletal conditions and sports injuries. Our experienced orthopedic surgeons provide comprehensive care for bone and joint problems."
+    contact: "+91 (040) 3041-8888",
+    description: "Care Hospitals Hyderabad specializes in neurological treatments with advanced brain and spine surgery capabilities and a dedicated team of neurologists and neurosurgeons."
   },
   {
     id: "6",
-    name: "Lakeside Women's Health",
-    location: "890 Cedar Avenue, Miami, FL",
-    specialty: "Obstetrics & Gynecology",
+    name: "Sunshine Hospitals Hyderabad",
+    location: "Paradise Circle, Secunderabad, Telangana",
+    specialty: "Orthopedics",
     image: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
+    rating: 4.9,
+    contact: "+91 (040) 4567-8900",
+    description: "Sunshine Hospitals Hyderabad is a premier orthopedic center with expertise in joint replacements, sports injuries, and spine surgeries, providing specialized care for bone and joint conditions."
+  },
+  {
+    id: "7",
+    name: "Yashoda Hospitals Hyderabad",
+    location: "Somajiguda, Hyderabad, Telangana",
+    specialty: "Oncology",
+    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2053&q=80",
     rating: 4.8,
-    contact: "+1 (555) 345-6789",
-    description: "Lakeside Women's Health provides comprehensive care for women of all ages. Our OB/GYN specialists offer services ranging from routine check-ups to specialized treatments for women's health issues."
+    contact: "+91 (040) 4567-3000",
+    description: "Yashoda Hospitals Hyderabad offers comprehensive cancer care with advanced radiation therapy, chemotherapy, and surgical oncology services provided by experienced oncologists."
   }
 ];
 
@@ -117,7 +127,7 @@ export default function HospitalsPage() {
                   <SelectValue placeholder="Filter by specialty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Specialties</SelectItem>
+                  <SelectItem value="">All Specialties</SelectItem>
                   {specialties.map((specialty) => (
                     <SelectItem key={specialty} value={specialty}>
                       {specialty}

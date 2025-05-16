@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,14 +10,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SettingsPage() {
+  const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "(555) 123-4567",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
     language: "en",
   });
   
@@ -33,6 +35,35 @@ export default function SettingsPage() {
     shareAnalytics: true,
     allowHealthProviders: true,
   });
+
+  useEffect(() => {
+    async function loadUserProfile() {
+      setLoading(true);
+      
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // Set the email from the auth user
+          setProfileData(prev => ({
+            ...prev,
+            email: user.email || "",
+            // Extract first name and last name from user metadata if available
+            firstName: user.user_metadata?.first_name || "",
+            lastName: user.user_metadata?.last_name || "",
+            phone: user.user_metadata?.phone || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Error loading user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadUserProfile();
+  }, []);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -51,11 +82,29 @@ export default function SettingsPage() {
     setPrivacy(prev => ({ ...prev, [key]: checked }));
   };
   
-  const handleSave = () => {
-    toast({
-      title: "Settings saved",
-      description: "Your settings have been saved successfully."
-    });
+  const handleSave = async () => {
+    try {
+      // Update user metadata
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          phone: profileData.phone,
+          language: profileData.language
+        }
+      });
+
+      if (error) throw error;
+      
+      toast.success("Settings saved", {
+        description: "Your settings have been saved successfully."
+      });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Failed to save settings", {
+        description: "Please try again later."
+      });
+    }
   };
 
   return (
@@ -76,65 +125,75 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {loading ? (
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input 
-                    id="firstName" 
-                    name="firstName" 
-                    value={profileData.firstName} 
-                    onChange={handleProfileChange} 
-                  />
+                  <div className="h-4 w-1/3 bg-gray-200 animate-pulse rounded"></div>
+                  <div className="h-10 w-full bg-gray-200 animate-pulse rounded"></div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input 
-                    id="lastName" 
-                    name="lastName" 
-                    value={profileData.lastName} 
-                    onChange={handleProfileChange} 
-                  />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input 
+                      id="firstName" 
+                      name="firstName" 
+                      value={profileData.firstName} 
+                      onChange={handleProfileChange} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input 
+                      id="lastName" 
+                      name="lastName" 
+                      value={profileData.lastName} 
+                      onChange={handleProfileChange} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input 
+                      id="email" 
+                      name="email" 
+                      type="email" 
+                      value={profileData.email} 
+                      onChange={handleProfileChange}
+                      disabled
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input 
+                      id="phone" 
+                      name="phone" 
+                      value={profileData.phone} 
+                      onChange={handleProfileChange} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Language</Label>
+                    <Select 
+                      value={profileData.language} 
+                      onValueChange={handleLanguageChange}
+                    >
+                      <SelectTrigger id="language">
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Spanish</SelectItem>
+                        <SelectItem value="fr">French</SelectItem>
+                        <SelectItem value="de">German</SelectItem>
+                        <SelectItem value="hi">Hindi</SelectItem>
+                        <SelectItem value="te">Telugu</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    name="email" 
-                    type="email" 
-                    value={profileData.email} 
-                    onChange={handleProfileChange} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input 
-                    id="phone" 
-                    name="phone" 
-                    value={profileData.phone} 
-                    onChange={handleProfileChange} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <Select 
-                    value={profileData.language} 
-                    onValueChange={handleLanguageChange}
-                  >
-                    <SelectTrigger id="language">
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              )}
               
               <div className="pt-4">
-                <Button onClick={handleSave}>Save Changes</Button>
+                <Button onClick={handleSave} disabled={loading}>Save Changes</Button>
               </div>
             </CardContent>
           </Card>
@@ -202,7 +261,7 @@ export default function SettingsPage() {
               </div>
               
               <div className="pt-4">
-                <Button onClick={handleSave}>Save Changes</Button>
+                <Button onClick={handleSave} disabled={loading}>Save Changes</Button>
               </div>
             </CardContent>
           </Card>
@@ -255,7 +314,7 @@ export default function SettingsPage() {
               </div>
               
               <div className="pt-4 space-y-2">
-                <Button onClick={handleSave}>Save Changes</Button>
+                <Button onClick={handleSave} disabled={loading}>Save Changes</Button>
                 <p className="text-xs text-muted-foreground mt-2">
                   Your privacy is important to us. We will never sell your data to third parties.
                 </p>
