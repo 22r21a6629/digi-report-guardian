@@ -1,4 +1,8 @@
 
-import { useToast, toast } from "@/hooks/use-toast";
+// This file re-exports from the hooks folder for backward compatibility
+import { useToast as useHookToast, toast as hookToast, type ToasterToast } from "@/hooks/use-toast";
 
-export { useToast, toast };
+// Re-export everything
+export const useToast = useHookToast;
+export const toast = hookToast;
+export type { ToasterToast };

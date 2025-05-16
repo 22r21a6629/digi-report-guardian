@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +15,6 @@ export default function ForgotPasswordPage() {
   const [isSent, setIsSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
