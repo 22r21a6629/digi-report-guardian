@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +52,7 @@ export default function SettingsPage() {
   };
   
   const handleSave = () => {
-    toast.success({
+    toast({
       title: "Settings saved",
       description: "Your settings have been saved successfully."
     });
