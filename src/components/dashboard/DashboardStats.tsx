@@ -1,19 +1,16 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Upload, Clock, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function DashboardStats() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const isMobile = useIsMobile();
 
   const handleCardClick = (destination: string, title: string) => {
     navigate(destination);
-    toast({
-      title: `Navigating to ${title}`,
+    toast(`Navigating to ${title}`, {
       description: `Viewing ${title.toLowerCase()} details`,
       duration: 3000,
     });
