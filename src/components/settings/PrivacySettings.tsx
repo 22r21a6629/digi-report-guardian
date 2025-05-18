@@ -4,14 +4,16 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 
+interface PrivacySettings {
+  shareData: boolean;
+  shareAnalytics: boolean;
+  allowHealthProviders: boolean;
+}
+
 interface PrivacySettingsProps {
-  privacy: {
-    shareData: boolean;
-    shareAnalytics: boolean;
-    allowHealthProviders: boolean;
-  };
+  privacy: PrivacySettings;
   loading: boolean;
-  onPrivacyChange: (key: keyof typeof privacy, checked: boolean) => void;
+  onPrivacyChange: (key: keyof PrivacySettings, checked: boolean) => void;
   onSave: () => void;
 }
 

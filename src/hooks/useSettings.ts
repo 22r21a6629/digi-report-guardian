@@ -3,9 +3,30 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+export interface ProfileData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  language: string;
+}
+
+export interface NotificationSettings {
+  emailReports: boolean;
+  emailAppointments: boolean;
+  pushNotifications: boolean;
+  smsNotifications: boolean;
+}
+
+export interface PrivacySettings {
+  shareData: boolean;
+  shareAnalytics: boolean;
+  allowHealthProviders: boolean;
+}
+
 export function useSettings() {
   const [loading, setLoading] = useState(true);
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -13,14 +34,14 @@ export function useSettings() {
     language: "en",
   });
   
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications] = useState<NotificationSettings>({
     emailReports: true,
     emailAppointments: true,
     pushNotifications: true,
     smsNotifications: false,
   });
   
-  const [privacy, setPrivacy] = useState({
+  const [privacy, setPrivacy] = useState<PrivacySettings>({
     shareData: false,
     shareAnalytics: true,
     allowHealthProviders: true,

@@ -5,15 +5,17 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+interface NotificationSettings {
+  emailReports: boolean;
+  emailAppointments: boolean;
+  pushNotifications: boolean;
+  smsNotifications: boolean;
+}
+
 interface NotificationSettingsProps {
-  notifications: {
-    emailReports: boolean;
-    emailAppointments: boolean;
-    pushNotifications: boolean;
-    smsNotifications: boolean;
-  };
+  notifications: NotificationSettings;
   loading: boolean;
-  onNotificationChange: (key: keyof typeof notifications, checked: boolean) => void;
+  onNotificationChange: (key: keyof NotificationSettings, checked: boolean) => void;
   onSave: () => void;
 }
 
