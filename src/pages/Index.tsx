@@ -18,7 +18,15 @@ const Index = () => {
           const userType = session.user.user_metadata?.user_type;
           console.log("User type:", userType);
           
-          // Check if user has reports
+          // Different navigation logic based on user type
+          if (userType === 'doctor') {
+            // Doctors go straight to dashboard
+            console.log("Doctor user detected, navigating to dashboard");
+            navigate("/dashboard");
+            return;
+          }
+          
+          // For non-doctors, check reports
           const { data: reports, error } = await supabase
             .from('reports')
             .select('id')
@@ -31,18 +39,14 @@ const Index = () => {
             return;
           }
 
-          // Different navigation logic based on user type
-          if (userType === 'doctor') {
-            // Doctors go straight to dashboard regardless of reports
-            navigate("/dashboard");
-          } else if (reports && reports.length > 0) {
-            // Regular users with reports complete profile first
+          if (reports && reports.length > 0) {
+            // Users with reports complete profile first
             toast("Complete your profile", {
               description: "Please complete your profile information"
             });
             navigate("/settings");
           } else {
-            // Regular users without reports go to dashboard
+            // Users without reports go to dashboard
             navigate("/dashboard");
           }
         } else {

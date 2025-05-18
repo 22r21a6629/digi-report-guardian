@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { UserPlus, Mail, User, Lock, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function RegisterForm() {
   const [fullName, setFullName] = useState("");
@@ -16,11 +17,13 @@ export function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [userType, setUserType] = useState("patient");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     if (password !== confirmPassword) {
       toast({
@@ -28,6 +31,7 @@ export function RegisterForm() {
         description: "Please make sure your passwords match",
         variant: "destructive",
       });
+      setError("Passwords don't match. Please try again.");
       return;
     }
     
@@ -35,6 +39,8 @@ export function RegisterForm() {
     
     try {
       // Register the user with Supabase
+      console.log("Registering user with type:", userType);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -47,26 +53,32 @@ export function RegisterForm() {
       });
       
       if (error) {
+        console.error("Registration error:", error);
         toast({
           title: "Registration failed",
           description: error.message,
           variant: "destructive",
         });
+        setError(error.message);
       } else {
+        console.log("Registration successful:", data);
         toast({
           title: "Account created successfully",
-          description: "You can now sign in with your credentials",
+          description: `You can now sign in with your credentials as a ${userType}`,
         });
         
+        // Don't automatically sign in - redirect to login page
         navigate("/login");
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "There was a problem creating your account";
       toast({
         title: "Registration failed",
-        description: "There was a problem creating your account",
+        description: errorMessage,
         variant: "destructive",
       });
       console.error("Registration error:", error);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +86,12 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       <div className="space-y-2">
         <Label htmlFor="fullName" className="flex items-center gap-2">
           <User className="h-4 w-4" />
@@ -173,6 +191,7 @@ export function RegisterForm() {
           variant="link" 
           className="px-0 text-dignoweb-primary"
           onClick={() => navigate("/login")}
+          type="button"
         >
           Sign in
         </Button>

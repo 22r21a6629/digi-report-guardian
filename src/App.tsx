@@ -24,12 +24,23 @@ const queryClient = new QueryClient();
 const App = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log("Auth state changed:", _event);
       setSession(session);
+      
+      // Update user role from metadata
+      if (session?.user) {
+        const role = session.user.user_metadata?.user_type || null;
+        console.log("User role from metadata:", role);
+        setUserRole(role);
+      } else {
+        setUserRole(null);
+      }
+      
       setLoading(false);
     });
 
@@ -37,6 +48,14 @@ const App = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session check:", session ? "Session found" : "No session");
       setSession(session);
+      
+      // Set initial user role from metadata
+      if (session?.user) {
+        const role = session.user.user_metadata?.user_type || null;
+        console.log("Initial user role from metadata:", role);
+        setUserRole(role);
+      }
+      
       setLoading(false);
     });
 
