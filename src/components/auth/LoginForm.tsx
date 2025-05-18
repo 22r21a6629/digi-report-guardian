@@ -1,11 +1,11 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { LogIn, AlertTriangle, Mail } from "lucide-react";
+import { LogIn, AlertTriangle, Mail, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -15,8 +15,20 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [needsVerification, setNeedsVerification] = useState(false);
+  const [justRegistered, setJustRegistered] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Check if coming from registration page
+  useEffect(() => {
+    if (location.state?.email) {
+      setEmail(location.state.email);
+      if (location.state.justRegistered) {
+        setJustRegistered(true);
+      }
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +37,7 @@ export function LoginForm() {
     setNeedsVerification(false);
     
     try {
+      console.log("Attempting login with:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -112,6 +125,13 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {justRegistered && (
+        <Alert className="bg-green-50 text-green-800 border-green-200">
+          <CheckCircle className="h-4 w-4 mr-2" />
+          <AlertDescription>Account created successfully! You can now sign in.</AlertDescription>
+        </Alert>
+      )}
+    
       {errorMessage && (
         <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
           <AlertTriangle className="h-4 w-4 mr-2" />

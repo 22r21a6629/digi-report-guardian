@@ -18,7 +18,8 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: 'implicit',
-      storage: localStorage
+      storage: localStorage,
+      debug: true // Enable debug mode temporarily to help troubleshoot auth issues
     }
   }
 );

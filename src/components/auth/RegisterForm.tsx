@@ -18,12 +18,14 @@ export function RegisterForm() {
   const [userType, setUserType] = useState("patient");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
     
     if (password !== confirmPassword) {
       toast({
@@ -49,6 +51,7 @@ export function RegisterForm() {
             full_name: fullName,
             user_type: userType,
           },
+          emailRedirectTo: window.location.origin + '/login'
         },
       });
       
@@ -62,13 +65,31 @@ export function RegisterForm() {
         setError(error.message);
       } else {
         console.log("Registration successful:", data);
-        toast({
-          title: "Account created successfully",
-          description: `You can now sign in with your credentials as a ${userType}`,
-        });
         
-        // Don't automatically sign in - redirect to login page
-        navigate("/login");
+        // Check if email confirmation is required
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          setSuccessMessage("This email is already registered. Please try logging in instead.");
+          toast({
+            title: "Email already registered",
+            description: "Please try logging in with your existing account",
+          });
+        } else {
+          setSuccessMessage("Account created successfully! You can now log in with your credentials.");
+          toast({
+            title: "Account created successfully",
+            description: `You can now sign in with your credentials as a ${userType}`,
+          });
+        }
+        
+        // Wait a bit before redirecting to login page
+        setTimeout(() => {
+          navigate("/login", { 
+            state: { 
+              email,
+              justRegistered: true 
+            } 
+          });
+        }, 2000);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "There was a problem creating your account";
@@ -89,6 +110,12 @@ export function RegisterForm() {
       {error && (
         <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert className="bg-green-50 text-green-800 border-green-200">
+          <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
       )}
       
