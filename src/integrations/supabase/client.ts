@@ -19,8 +19,7 @@ export const supabase = createClient<Database>(
       detectSessionInUrl: false,
       flowType: 'pkce',
       storage: localStorage,
-      debug: false // Disable debug mode in production
+      debug: true // Enable debug temporarily to troubleshoot auth issues
     }
   }
 );
-

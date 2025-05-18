@@ -5,42 +5,60 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { LogIn, AlertTriangle, Mail, CheckCircle } from "lucide-react";
+import { LogIn, AlertTriangle, Mail, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+// Define validation schema
+const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(1, { message: "Password is required." }),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   // Check if coming from registration page
   useEffect(() => {
     if (location.state?.email) {
-      setEmail(location.state.email);
+      form.setValue("email", location.state.email);
       if (location.state.justRegistered) {
         setJustRegistered(true);
       }
     }
-  }, [location]);
+  }, [location, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setErrorMessage(null);
     setNeedsVerification(false);
     
     try {
-      console.log("Attempting login with:", email);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      console.log("Attempting login with:", data.email);
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
       });
       
       if (error) {
@@ -61,9 +79,9 @@ export function LoginForm() {
           description: error.message || "Invalid email or password",
           variant: "destructive",
         });
-      } else if (data.user) {
+      } else if (authData.user) {
         // Check user metadata for role information
-        const userType = data.user.user_metadata?.user_type;
+        const userType = authData.user.user_metadata?.user_type;
         console.log("User logged in successfully. User type:", userType);
         
         toast({
@@ -88,6 +106,7 @@ export function LoginForm() {
   };
 
   const resendVerificationEmail = async () => {
+    const email = form.getValues("email");
     if (!email) {
       setErrorMessage("Please enter your email address first.");
       return;
@@ -123,12 +142,16 @@ export function LoginForm() {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
       {justRegistered && (
         <Alert className="bg-green-50 text-green-800 border-green-200">
           <CheckCircle className="h-4 w-4 mr-2" />
-          <AlertDescription>Account created successfully! You can now sign in.</AlertDescription>
+          <AlertDescription>Account created successfully! You need to verify your email before signing in.</AlertDescription>
         </Alert>
       )}
     
@@ -158,54 +181,81 @@ export function LoginForm() {
         </Alert>
       )}
       
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="name@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="name@example.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <Button 
+                    variant="link" 
+                    className="px-0 font-normal text-dignoweb-primary"
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                  >
+                    Forgot password?
+                  </Button>
+                </div>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      {...field}
+                    />
+                    <Button 
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                      onClick={togglePasswordVisibility}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
           <Button 
-            variant="link" 
-            className="px-0 font-normal text-dignoweb-primary"
-            type="button"
-            onClick={() => navigate("/forgot-password")}
+            type="submit" 
+            className="w-full bg-dignoweb-primary hover:bg-dignoweb-primary/90 flex items-center justify-center gap-2 mt-4"
+            disabled={isLoading}
           >
-            Forgot password?
+            {isLoading ? (
+              "Signing in..."
+            ) : (
+              <>
+                <LogIn className="h-4 w-4" />
+                Sign in
+              </>
+            )}
           </Button>
-        </div>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      
-      <Button 
-        type="submit" 
-        className="w-full bg-dignoweb-primary hover:bg-dignoweb-primary/90 flex items-center justify-center gap-2"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          "Signing in..."
-        ) : (
-          <>
-            <LogIn className="h-4 w-4" />
-            Sign in
-          </>
-        )}
-      </Button>
+        </form>
+      </Form>
       
       <div className="text-center">
         <span className="text-gray-500">Don't have an account?</span>{" "}
@@ -217,6 +267,6 @@ export function LoginForm() {
           Sign up
         </Button>
       </div>
-    </form>
+    </div>
   );
 }
