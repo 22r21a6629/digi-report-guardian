@@ -16,10 +16,11 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
-      flowType: 'implicit',
+      detectSessionInUrl: false,
+      flowType: 'pkce',
       storage: localStorage,
-      debug: true // Enable debug mode temporarily to help troubleshoot auth issues
+      debug: false // Disable debug mode in production
     }
   }
 );
+
