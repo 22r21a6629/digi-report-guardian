@@ -49,10 +49,16 @@ export function LoginForm() {
           variant: "destructive",
         });
       } else if (data.user) {
+        // Check user metadata for role information
+        const userType = data.user.user_metadata?.user_type;
+        console.log("User logged in successfully. User type:", userType);
+        
         toast({
           title: "Successfully logged in",
-          description: "Welcome back to Dignoweb",
+          description: `Welcome back to Dignoweb${userType ? ` as ${userType}` : ''}`,
         });
+        
+        // Redirect based on role if needed
         navigate("/dashboard");
       }
     } catch (error) {

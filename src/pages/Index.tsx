@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -14,6 +14,10 @@ const Index = () => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
+          // Get user type from metadata
+          const userType = session.user.user_metadata?.user_type;
+          console.log("User type:", userType);
+          
           // Check if user has reports
           const { data: reports, error } = await supabase
             .from('reports')
@@ -27,13 +31,18 @@ const Index = () => {
             return;
           }
 
-          // If user has reports, they need to complete profile first
-          if (reports && reports.length > 0) {
+          // Different navigation logic based on user type
+          if (userType === 'doctor') {
+            // Doctors go straight to dashboard regardless of reports
+            navigate("/dashboard");
+          } else if (reports && reports.length > 0) {
+            // Regular users with reports complete profile first
             toast("Complete your profile", {
               description: "Please complete your profile information"
             });
             navigate("/settings");
           } else {
+            // Regular users without reports go to dashboard
             navigate("/dashboard");
           }
         } else {
