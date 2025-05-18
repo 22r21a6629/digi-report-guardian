@@ -17,7 +17,7 @@ export function ReportTypeField({ value, onChange }: ReportTypeFieldProps) {
   return (
     <div>
       <Label htmlFor="report-type">Report Type</Label>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value || "radiology"} onValueChange={onChange}>
         <SelectTrigger id="report-type">
           <SelectValue placeholder="Select report type" />
         </SelectTrigger>

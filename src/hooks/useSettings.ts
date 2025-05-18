@@ -43,6 +43,7 @@ export function useSettings() {
             firstName: user.user_metadata?.first_name || "",
             lastName: user.user_metadata?.last_name || "",
             phone: user.user_metadata?.phone || "",
+            language: user.user_metadata?.language || "en",
           }));
         }
       } catch (error) {
@@ -86,12 +87,12 @@ export function useSettings() {
 
       if (error) throw error;
       
-      toast.success("Settings saved", {
+      toast("Settings saved", {
         description: "Your settings have been saved successfully."
       });
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error("Failed to save settings", {
+      toast("Failed to save settings", {
         description: "Please try again later."
       });
     }

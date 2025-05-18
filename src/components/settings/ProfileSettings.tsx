@@ -84,7 +84,7 @@ export function ProfileSettings({
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
               <Select 
-                value={profileData.language} 
+                value={profileData.language || "en"} 
                 onValueChange={onLanguageChange}
               >
                 <SelectTrigger id="language">

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -29,8 +29,7 @@ const Index = () => {
 
           // If user has reports, they need to complete profile first
           if (reports && reports.length > 0) {
-            toast.info({
-              title: "Complete your profile",
+            toast("Complete your profile", {
               description: "Please complete your profile information"
             });
             navigate("/settings");
