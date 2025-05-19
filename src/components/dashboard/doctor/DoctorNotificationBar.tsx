@@ -8,7 +8,7 @@ export function DoctorNotificationBar() {
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Welcome to your Doctor Dashboard</AlertTitle>
       <AlertDescription>
-        You can upload and manage patient reports from here. Search for patients by email or ID to upload their medical reports.
+        You can search for patients by email or ID to upload their medical reports. Reports will be securely stored and accessible to patients.
       </AlertDescription>
     </Alert>
   );

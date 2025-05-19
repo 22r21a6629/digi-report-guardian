@@ -74,13 +74,22 @@ export function PatientReportUpload() {
     setSearchResults([]);
     
     try {
-      // Search for patients by email (in a real app with proper backend)
-      // This is a simplified version for demonstration
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .or(`email.ilike.%${patientSearch}%,id.eq.${patientSearch}`)
-        .limit(5);
+      // Search for patients by email or ID
+      let query = supabase.from("profiles");
+      
+      // Try to convert patientSearch to UUID if it's an ID
+      let isUuid = false;
+      try {
+        if (patientSearch.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          isUuid = true;
+        }
+      } catch (e) {
+        // Not a UUID, will search as email
+      }
+      
+      let { data, error } = isUuid 
+        ? await query.select("*").eq("id", patientSearch).limit(5)
+        : await query.select("*").ilike("email", `%${patientSearch}%`).limit(5);
         
       if (error) throw error;
       

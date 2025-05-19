@@ -66,7 +66,6 @@ export function HospitalField({ value, onChange }: HospitalFieldProps) {
               placeholder="Search hospital..." 
               value={searchValue}
               onValueChange={handleSearchChange}
-              ref={inputRef}
             />
             <CommandEmpty>
               <div className="flex flex-col items-center justify-center py-6 text-center">
