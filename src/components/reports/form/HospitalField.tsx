@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -16,6 +16,8 @@ interface HospitalFieldProps {
 export function HospitalField({ value, onChange }: HospitalFieldProps) {
   const [open, setOpen] = useState(false);
   const [hospitals, setHospitals] = useState<string[]>([]);
+  const [searchValue, setSearchValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   
   // Fetch hospitals from mock data or API
   useEffect(() => {
@@ -31,6 +33,17 @@ export function HospitalField({ value, onChange }: HospitalFieldProps) {
     ];
     setHospitals(mockHospitals);
   }, []);
+
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+  };
+
+  const handleAddCustomHospital = () => {
+    if (searchValue) {
+      onChange(searchValue);
+      setOpen(false);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -49,7 +62,12 @@ export function HospitalField({ value, onChange }: HospitalFieldProps) {
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
           <Command>
-            <CommandInput placeholder="Search hospital..." />
+            <CommandInput 
+              placeholder="Search hospital..." 
+              value={searchValue}
+              onValueChange={handleSearchChange}
+              ref={inputRef}
+            />
             <CommandEmpty>
               <div className="flex flex-col items-center justify-center py-6 text-center">
                 <Building className="h-10 w-10 text-muted-foreground mb-2" />
@@ -57,15 +75,9 @@ export function HospitalField({ value, onChange }: HospitalFieldProps) {
                 <Button 
                   variant="link" 
                   className="text-sm mt-2" 
-                  onClick={() => {
-                    const input = document.querySelector('.cm-input') as HTMLInputElement;
-                    if (input && input.value) {
-                      onChange(input.value);
-                      setOpen(false);
-                    }
-                  }}
+                  onClick={handleAddCustomHospital}
                 >
-                  Add "{document.querySelector('.cm-input')?.value || 'custom'}" hospital
+                  Add "{searchValue || 'custom'}" hospital
                 </Button>
               </div>
             </CommandEmpty>

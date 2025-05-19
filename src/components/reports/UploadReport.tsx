@@ -17,7 +17,7 @@ import { FileUploadField } from "./form/FileUploadField";
 import { UploadProgress } from "./form/UploadProgress";
 
 export function UploadReport() {
-  const [reportType, setReportType] = useState("");
+  const [reportType, setReportType] = useState("radiology"); // Set default value
   const [hospital, setHospital] = useState("");
   const [reportDate, setReportDate] = useState<Date | undefined>(undefined);
   const [description, setDescription] = useState("");
@@ -211,7 +211,7 @@ export function UploadReport() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ReportTypeField value={reportType} onChange={setReportType} />
-            <HospitalField value={hospital} onChange={(e) => setHospital(e.target.value)} />
+            <HospitalField value={hospital} onChange={setHospital} />
           </div>
           
           <ReportDateField value={reportDate} onChange={setReportDate} />

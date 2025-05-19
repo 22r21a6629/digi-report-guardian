@@ -127,7 +127,7 @@ export default function HospitalsPage() {
                   <SelectValue placeholder="Filter by specialty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Specialties</SelectItem>
+                  <SelectItem value="all-specialties">All Specialties</SelectItem>
                   {specialties.map((specialty) => (
                     <SelectItem key={specialty} value={specialty}>
                       {specialty}
