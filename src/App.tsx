@@ -70,6 +70,7 @@ const App = () => {
     
     // Check for role if specified
     if (requiredRole && userRole !== requiredRole) {
+      console.log(`Access denied: Required role "${requiredRole}" but user has role "${userRole}"`);
       return <Navigate to="/dashboard" />;
     }
     

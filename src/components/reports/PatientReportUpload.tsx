@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,36 +73,14 @@ export function PatientReportUpload() {
     setSearchResults([]);
     
     try {
-      // Search for patients by email or ID
-      let query = supabase.from("profiles");
+      // Since we don't have a profiles table in the schema yet, we'll simulate the search results
+      // In a real app, you would have an actual profiles table to search through
+      // For now, we'll create mock data if an email is provided
       
-      // Try to convert patientSearch to UUID if it's an ID
-      let isUuid = false;
-      try {
-        if (patientSearch.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-          isUuid = true;
-        }
-      } catch (e) {
-        // Not a UUID, will search as email
-      }
-      
-      let { data, error } = isUuid 
-        ? await query.select("*").eq("id", patientSearch).limit(5)
-        : await query.select("*").ilike("email", `%${patientSearch}%`).limit(5);
-        
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        setSearchResults(data);
-        // Auto-select if only one result
-        if (data.length === 1) {
-          setSelectedPatientId(data[0].id);
-        }
-      } else {
-        // If no results found in database, create a mock result for testing
-        // In a real app, you would show "No patients found" message
-        if (patientSearch.includes('@')) {
-          const mockPatientId = uuidv4();
+      if (patientSearch.includes('@')) {
+        // Create mock results for demonstration
+        const mockPatientId = uuidv4();
+        setTimeout(() => {
           setSearchResults([{
             id: mockPatientId,
             email: patientSearch,
@@ -111,13 +88,29 @@ export function PatientReportUpload() {
             last_name: ""
           }]);
           setSelectedPatientId(mockPatientId);
-        } else {
-          toast({
-            title: "Patient not found",
-            description: "No patient found with that email or ID",
-            variant: "destructive",
-          });
-        }
+          setSearching(false);
+        }, 500);
+      } else if (patientSearch.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        // If it's a UUID format, use it directly
+        const mockPatientId = patientSearch;
+        setTimeout(() => {
+          setSearchResults([{
+            id: mockPatientId,
+            email: `patient-${mockPatientId.substring(0, 8)}@example.com`,
+            first_name: `Patient`,
+            last_name: mockPatientId.substring(0, 6)
+          }]);
+          setSelectedPatientId(mockPatientId);
+          setSearching(false);
+        }, 500);
+      } else {
+        // Not a valid search term
+        toast({
+          title: "Patient not found",
+          description: "No patient found with that email or ID",
+          variant: "destructive",
+        });
+        setSearching(false);
       }
     } catch (error) {
       console.error("Search error:", error);
@@ -126,7 +119,6 @@ export function PatientReportUpload() {
         description: "Failed to search for patient",
         variant: "destructive",
       });
-    } finally {
       setSearching(false);
     }
   };
