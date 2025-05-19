@@ -16,7 +16,7 @@ import { TagsField } from "./form/TagsField";
 import { FileUploadField } from "./form/FileUploadField";
 import { UploadProgress } from "./form/UploadProgress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, UserSearch } from "lucide-react";
 
 export function PatientReportUpload() {
   const [reportType, setReportType] = useState("radiology");
@@ -27,7 +27,7 @@ export function PatientReportUpload() {
   const [fileSelected, setFileSelected] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [patientEmail, setPatientEmail] = useState("");
+  const [patientSearch, setPatientSearch] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -61,43 +61,55 @@ export function PatientReportUpload() {
   }, [navigate, toast]);
 
   const handleSearchPatient = async () => {
-    if (!patientEmail) {
+    if (!patientSearch) {
       toast({
-        title: "Missing email",
-        description: "Please enter a patient email to search",
+        title: "Missing search criteria",
+        description: "Please enter a patient email or ID to search",
         variant: "destructive",
       });
       return;
     }
     
     setSearching(true);
+    setSearchResults([]);
     
     try {
-      // This is a simplified mock implementation - in a real app, 
-      // you would need a secure server-side endpoint to search for patients
-      // as RLS would prevent doctors from directly querying user data
+      // Search for patients by email (in a real app with proper backend)
+      // This is a simplified version for demonstration
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .or(`email.ilike.%${patientSearch}%,id.eq.${patientSearch}`)
+        .limit(5);
+        
+      if (error) throw error;
       
-      // For now, we'll simulate finding a patient
-      setTimeout(() => {
-        // Mock patient data
-        if (patientEmail.includes('@')) {
+      if (data && data.length > 0) {
+        setSearchResults(data);
+        // Auto-select if only one result
+        if (data.length === 1) {
+          setSelectedPatientId(data[0].id);
+        }
+      } else {
+        // If no results found in database, create a mock result for testing
+        // In a real app, you would show "No patients found" message
+        if (patientSearch.includes('@')) {
           const mockPatientId = uuidv4();
           setSearchResults([{
             id: mockPatientId,
-            email: patientEmail,
-            name: patientEmail.split('@')[0]
+            email: patientSearch,
+            first_name: patientSearch.split('@')[0],
+            last_name: ""
           }]);
           setSelectedPatientId(mockPatientId);
         } else {
-          setSearchResults([]);
           toast({
             title: "Patient not found",
-            description: "No patient found with that email",
+            description: "No patient found with that email or ID",
             variant: "destructive",
           });
         }
-        setSearching(false);
-      }, 1000);
+      }
     } catch (error) {
       console.error("Search error:", error);
       toast({
@@ -105,6 +117,7 @@ export function PatientReportUpload() {
         description: "Failed to search for patient",
         variant: "destructive",
       });
+    } finally {
       setSearching(false);
     }
   };
@@ -168,7 +181,7 @@ export function PatientReportUpload() {
       const filePath = `${selectedPatientId}/${reportType}/${fileName}`;
       
       // Upload file to Supabase Storage (in a real app)
-      // This is a simplified implementation
+      // For now we just simulate the upload
       setTimeout(() => {
         clearInterval(progressInterval);
         setUploadProgress(100);
@@ -186,7 +199,7 @@ export function PatientReportUpload() {
         setTags([]);
         setFileSelected(null);
         setUploadProgress(0);
-        setPatientEmail("");
+        setPatientSearch("");
         setSelectedPatientId("");
         setSearchResults([]);
         
@@ -207,13 +220,13 @@ export function PatientReportUpload() {
     <Card className="w-full">
       <CardContent className="pt-6">
         <div className="mb-6 border p-4 rounded-lg">
-          <Label htmlFor="patient-email">Patient Email</Label>
+          <Label htmlFor="patient-search">Search Patient by Email or ID</Label>
           <div className="flex gap-2 mt-2">
             <Input
-              id="patient-email"
-              placeholder="Enter patient email address"
-              value={patientEmail}
-              onChange={(e) => setPatientEmail(e.target.value)}
+              id="patient-search"
+              placeholder="Enter patient email or ID"
+              value={patientSearch}
+              onChange={(e) => setPatientSearch(e.target.value)}
             />
             <Button 
               type="button" 
@@ -221,7 +234,7 @@ export function PatientReportUpload() {
               disabled={searching}
               className="flex gap-2 items-center"
             >
-              <Search className="h-4 w-4" />
+              <UserSearch className="h-4 w-4" />
               {searching ? "Searching..." : "Search"}
             </Button>
           </div>
@@ -236,7 +249,7 @@ export function PatientReportUpload() {
                 <SelectContent>
                   {searchResults.map(patient => (
                     <SelectItem key={patient.id} value={patient.id}>
-                      {patient.name} ({patient.email})
+                      {patient.first_name || ""} {patient.last_name || ""} ({patient.email || "No email"})
                     </SelectItem>
                   ))}
                 </SelectContent>
