@@ -20,9 +20,9 @@ const Index = () => {
           
           // Different navigation logic based on user type
           if (userType === 'doctor') {
-            // Doctors go straight to dashboard
-            console.log("Doctor user detected, navigating to dashboard");
-            navigate("/dashboard");
+            // Doctors go to the doctor dashboard
+            console.log("Doctor user detected, navigating to doctor dashboard");
+            navigate("/doctor-dashboard");
             return;
           }
           

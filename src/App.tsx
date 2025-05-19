@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import DoctorDashboardPage from "./pages/DoctorDashboardPage";
 import UploadPage from "./pages/UploadPage";
 import HospitalsPage from "./pages/HospitalsPage";
 import ReportsPage from "./pages/ReportsPage";
@@ -63,9 +64,15 @@ const App = () => {
   }, []);
 
   // Protected route component
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode, requiredRole?: string }) => {
     if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     if (!session) return <Navigate to="/login" />;
+    
+    // Check for role if specified
+    if (requiredRole && userRole !== requiredRole) {
+      return <Navigate to="/dashboard" />;
+    }
+    
     return <>{children}</>;
   };
 
@@ -87,6 +94,14 @@ const App = () => {
                 <DashboardPage />
               </ProtectedRoute>
             } />
+            
+            {/* Doctor-specific routes */}
+            <Route path="/doctor-dashboard" element={
+              <ProtectedRoute requiredRole="doctor">
+                <DoctorDashboardPage />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/upload" element={
               <ProtectedRoute>
                 <UploadPage />
