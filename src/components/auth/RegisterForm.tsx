@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PinSetupDialog } from "./PinSetupDialog";
 
 // Define validation schema
 const registrationSchema = z.object({
@@ -34,6 +34,8 @@ export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showPinSetup, setShowPinSetup] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -92,21 +94,8 @@ export function RegisterForm() {
         console.log("Registration successful:", authData);
         
         if (authData.user) {
-          setSuccessMessage("Account created successfully! Please check your email to verify your account before signing in.");
-          toast({
-            title: "Account created successfully",
-            description: `Please check your email to verify your account.`,
-          });
-          
-          // Wait a bit before redirecting to login page
-          setTimeout(() => {
-            navigate("/login", { 
-              state: { 
-                email: data.email,
-                justRegistered: true 
-              } 
-            });
-          }, 2000);
+          setRegisteredEmail(data.email);
+          setShowPinSetup(true);
         } else {
           setError("Something went wrong during registration. Please try again.");
         }
@@ -123,6 +112,30 @@ export function RegisterForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePinSet = async (pin: string) => {
+    // In a real application, you would store this PIN securely in the user's profile
+    // For now, we'll store it in localStorage as a demo
+    localStorage.setItem(`user_pin_${registeredEmail}`, pin);
+    
+    setSuccessMessage("Account created successfully! Please check your email to verify your account before signing in.");
+    toast({
+      title: "Account created successfully",
+      description: "Please check your email to verify your account.",
+    });
+    
+    setShowPinSetup(false);
+    
+    // Wait a bit before redirecting to login page
+    setTimeout(() => {
+      navigate("/login", { 
+        state: { 
+          email: registeredEmail,
+          justRegistered: true 
+        } 
+      });
+    }, 2000);
   };
 
   return (
@@ -278,6 +291,13 @@ export function RegisterForm() {
           Sign in
         </Button>
       </div>
+
+      <PinSetupDialog
+        open={showPinSetup}
+        onPinSet={handlePinSet}
+        title="Set Security PIN"
+        description="Please create a 4-digit PIN to secure your medical reports. You'll need this PIN to view or download your reports."
+      />
     </div>
   );
 }

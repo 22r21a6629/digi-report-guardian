@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PinSetupDialog } from "./PinSetupDialog";
 
 // Define validation schema
 const loginSchema = z.object({
@@ -27,6 +27,8 @@ export function LoginForm() {
   const [needsVerification, setNeedsVerification] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showPinSetup, setShowPinSetup] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -48,6 +50,13 @@ export function LoginForm() {
       }
     }
   }, [location, form]);
+
+  const checkUserPin = (email: string) => {
+    // In a real application, you would check this from the user's profile in the database
+    // For now, we'll check localStorage as a demo
+    const userPin = localStorage.getItem(`user_pin_${email}`);
+    return userPin !== null;
+  };
 
   const handleSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -80,6 +89,15 @@ export function LoginForm() {
           variant: "destructive",
         });
       } else if (authData.user) {
+        // Check if user has a PIN set
+        const hasPinSet = checkUserPin(data.email);
+        
+        if (!hasPinSet) {
+          setUserEmail(data.email);
+          setShowPinSetup(true);
+          return;
+        }
+
         // Check user metadata for role information
         const userType = authData.user.user_metadata?.user_type;
         console.log("User logged in successfully. User type:", userType);
@@ -103,6 +121,23 @@ export function LoginForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePinSet = async (pin: string) => {
+    // Store the PIN for the user
+    localStorage.setItem(`user_pin_${userEmail}`, pin);
+    
+    toast({
+      title: "PIN set successfully",
+      description: "Your security PIN has been created. Redirecting to dashboard...",
+    });
+    
+    setShowPinSetup(false);
+    
+    // Small delay before redirecting
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 1000);
   };
 
   const resendVerificationEmail = async () => {
@@ -267,6 +302,13 @@ export function LoginForm() {
           Sign up
         </Button>
       </div>
+      
+      <PinSetupDialog
+        open={showPinSetup}
+        onPinSet={handlePinSet}
+        title="Set Security PIN"
+        description="To secure your medical reports, please create a 4-digit PIN. You'll need this PIN to view or download your reports."
+      />
     </div>
   );
 }

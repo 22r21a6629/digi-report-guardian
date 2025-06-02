@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Lock, Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PinAuthDialogProps {
   open: boolean;
@@ -31,13 +32,27 @@ export function PinAuthDialog({
   const [pin, setPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const { toast } = useToast();
 
-  // For demo purposes, using a static PIN. In production, this should be:
-  // 1. Stored securely (hashed) in the user's profile
-  // 2. Retrieved from the backend
-  // 3. Verified server-side
-  const DEMO_PIN = "1234";
+  useEffect(() => {
+    const getCurrentUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || "");
+      }
+    };
+    
+    if (open) {
+      getCurrentUserEmail();
+    }
+  }, [open]);
+
+  const getUserPin = (email: string) => {
+    // In a real application, this would be retrieved from the database
+    // For now, we'll get it from localStorage as a demo
+    return localStorage.getItem(`user_pin_${email}`);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,11 +66,32 @@ export function PinAuthDialog({
       return;
     }
 
+    if (!userEmail) {
+      toast({
+        title: "User not found",
+        description: "Please log in again",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsVerifying(true);
 
     // Simulate verification delay
     setTimeout(() => {
-      if (pin === DEMO_PIN) {
+      const userPin = getUserPin(userEmail);
+      
+      if (!userPin) {
+        toast({
+          title: "PIN not set",
+          description: "Please set up your security PIN in settings",
+          variant: "destructive",
+        });
+        setIsVerifying(false);
+        return;
+      }
+
+      if (pin === userPin) {
         toast({
           title: "PIN verified",
           description: "Access granted successfully",
@@ -114,9 +150,6 @@ export function PinAuthDialog({
                 {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Demo PIN: 1234 (In production, this would be your secure PIN)
-            </p>
           </div>
           
           <div className="flex gap-2 pt-4">

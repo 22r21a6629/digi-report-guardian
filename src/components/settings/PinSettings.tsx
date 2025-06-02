@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Lock, Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PinSettingsProps {
   loading: boolean;
@@ -19,12 +20,31 @@ export function PinSettings({ loading }: PinSettingsProps) {
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const { toast } = useToast();
 
-  // For demo purposes, using a static PIN. In production, this should be:
-  // 1. Retrieved from user's encrypted profile
-  // 2. Verified and updated server-side
-  const DEMO_PIN = "1234";
+  useEffect(() => {
+    const getCurrentUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || "");
+      }
+    };
+    
+    getCurrentUserEmail();
+  }, []);
+
+  const getUserPin = (email: string) => {
+    // In a real application, this would be retrieved from the database
+    // For now, we'll get it from localStorage as a demo
+    return localStorage.getItem(`user_pin_${email}`);
+  };
+
+  const setUserPin = (email: string, pin: string) => {
+    // In a real application, this would be stored securely in the database
+    // For now, we'll store it in localStorage as a demo
+    localStorage.setItem(`user_pin_${email}`, pin);
+  };
 
   const handleChangePIN = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +58,27 @@ export function PinSettings({ loading }: PinSettingsProps) {
       return;
     }
 
-    if (currentPin !== DEMO_PIN) {
+    if (!userEmail) {
+      toast({
+        title: "User not found",
+        description: "Please log in again",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const storedPin = getUserPin(userEmail);
+    
+    if (!storedPin) {
+      toast({
+        title: "No PIN found",
+        description: "You don't have a PIN set. Please contact support.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (currentPin !== storedPin) {
       toast({
         title: "Invalid current PIN",
         description: "The current PIN you entered is incorrect",
@@ -78,6 +118,8 @@ export function PinSettings({ loading }: PinSettingsProps) {
 
     // Simulate PIN change process
     setTimeout(() => {
+      setUserPin(userEmail, newPin);
+      
       toast({
         title: "PIN changed successfully",
         description: "Your security PIN has been updated",
@@ -184,7 +226,8 @@ export function PinSettings({ loading }: PinSettingsProps) {
 
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
             <p className="text-xs text-blue-600">
-              <strong>Demo Note:</strong> Current PIN is 1234. In production, this would be your actual secure PIN.
+              <strong>Security:</strong> Your PIN is used to protect access to your medical reports. 
+              Make sure to choose a PIN that only you know.
             </p>
           </div>
 
