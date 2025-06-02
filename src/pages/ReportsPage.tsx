@@ -166,16 +166,19 @@ export default function ReportsPage() {
     const { type, report } = pendingAction;
 
     if (type === 'view') {
+      // Open in new tab/window to VIEW the file (not download)
       window.open(report.file_url, '_blank');
       toast({
         title: "Opening report",
-        description: `Opening ${report.file_name}`,
+        description: `Opening ${report.file_name} for viewing`,
       });
     } else if (type === 'download') {
+      // Download the file
       try {
         const link = document.createElement('a');
         link.href = report.file_url;
         link.download = report.file_name;
+        link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
