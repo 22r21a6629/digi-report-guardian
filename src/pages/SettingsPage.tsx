@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { PrivacySettings } from "@/components/settings/PrivacySettings";
+import { PinSettings } from "@/components/settings/PinSettings";
 import { useSettings } from "@/hooks/useSettings";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
@@ -43,10 +44,11 @@ export default function SettingsPage() {
   return (
     <AppLayout title="Settings">
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid grid-cols-3 max-w-md">
+        <TabsList className="grid grid-cols-4 max-w-lg">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="privacy">Privacy</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile">
@@ -74,6 +76,12 @@ export default function SettingsPage() {
             loading={loading}
             onPrivacyChange={handlePrivacyChange}
             onSave={handleSave}
+          />
+        </TabsContent>
+
+        <TabsContent value="security">
+          <PinSettings 
+            loading={loading}
           />
         </TabsContent>
       </Tabs>
