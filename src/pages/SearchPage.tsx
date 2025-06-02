@@ -1,4 +1,3 @@
-
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { useState } from "react";
 import { Search as SearchIcon, FileText, Download, Eye, Calendar, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { PinAuthDialog } from "@/components/auth/PinAuthDialog";
 
 type SearchResult = {
   id: string;
@@ -20,11 +20,17 @@ type SearchResult = {
   created_at: string;
 };
 
+type PendingAction = {
+  type: 'view' | 'download';
+  result: SearchResult;
+} | null;
+
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const { toast } = useToast();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -65,27 +71,49 @@ export default function SearchPage() {
     }
   };
 
-  const handleDownload = async (fileUrl: string, fileName: string) => {
-    try {
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
+  const handleView = (result: SearchResult) => {
+    setPendingAction({ type: 'view', result });
+  };
+
+  const handleDownload = (result: SearchResult) => {
+    setPendingAction({ type: 'download', result });
+  };
+
+  const executePendingAction = () => {
+    if (!pendingAction) return;
+
+    const { type, result } = pendingAction;
+
+    if (type === 'view') {
+      window.open(result.file_url, '_blank');
       toast({
-        title: "Download started",
-        description: `Downloading ${fileName}`,
+        title: "Opening report",
+        description: `Opening ${result.file_name}`,
       });
-    } catch (error) {
-      console.error('Download error:', error);
-      toast({
-        title: "Download failed",
-        description: "There was a problem downloading the report",
-        variant: "destructive",
-      });
+    } else if (type === 'download') {
+      try {
+        const link = document.createElement('a');
+        link.href = result.file_url;
+        link.download = result.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Download started",
+          description: `Downloading ${result.file_name}`,
+        });
+      } catch (error) {
+        console.error('Download error:', error);
+        toast({
+          title: "Download failed",
+          description: "There was a problem downloading the report",
+          variant: "destructive",
+        });
+      }
     }
+
+    setPendingAction(null);
   };
 
   const getReportTypeDisplay = (type: string) => {
@@ -171,7 +199,7 @@ export default function SearchPage() {
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => window.open(result.file_url, '_blank')}
+                                  onClick={() => handleView(result)}
                                   title="View"
                                 >
                                   <Eye className="h-4 w-4" />
@@ -179,7 +207,7 @@ export default function SearchPage() {
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => handleDownload(result.file_url, result.file_name)}
+                                  onClick={() => handleDownload(result)}
                                   title="Download"
                                 >
                                   <Download className="h-4 w-4" />
@@ -208,6 +236,19 @@ export default function SearchPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* PIN Authentication Dialog */}
+      <PinAuthDialog
+        open={!!pendingAction}
+        onOpenChange={(open) => !open && setPendingAction(null)}
+        onSuccess={executePendingAction}
+        title={pendingAction?.type === 'view' ? 'Secure Access Required' : 'Download Authorization'}
+        description={
+          pendingAction?.type === 'view' 
+            ? `Enter your PIN to view "${pendingAction.result.file_name}"`
+            : `Enter your PIN to download "${pendingAction?.result.file_name}"`
+        }
+      />
     </AppLayout>
   );
 }

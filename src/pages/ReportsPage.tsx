@@ -1,4 +1,3 @@
-
 import { AppLayout } from "@/components/layout/AppLayout";
 import { 
   Card, 
@@ -33,6 +32,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { PinAuthDialog } from "@/components/auth/PinAuthDialog";
 
 type Report = {
   id: string;
@@ -47,12 +47,18 @@ type Report = {
   created_at: string;
 };
 
+type PendingAction = {
+  type: 'view' | 'download';
+  report: Report;
+} | null;
+
 export default function ReportsPage() {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -146,28 +152,49 @@ export default function ReportsPage() {
     setSearchTerm("");
   };
   
-  const handleDownload = async (fileUrl: string, fileName: string) => {
-    try {
-      // Create a link element
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
+  const handleView = (report: Report) => {
+    setPendingAction({ type: 'view', report });
+  };
+
+  const handleDownload = (report: Report) => {
+    setPendingAction({ type: 'download', report });
+  };
+
+  const executePendingAction = () => {
+    if (!pendingAction) return;
+
+    const { type, report } = pendingAction;
+
+    if (type === 'view') {
+      window.open(report.file_url, '_blank');
       toast({
-        title: "Download started",
-        description: `Downloading ${fileName}`,
+        title: "Opening report",
+        description: `Opening ${report.file_name}`,
       });
-    } catch (error) {
-      console.error('Download error:', error);
-      toast({
-        title: "Download failed",
-        description: "There was a problem downloading your report",
-        variant: "destructive",
-      });
+    } else if (type === 'download') {
+      try {
+        const link = document.createElement('a');
+        link.href = report.file_url;
+        link.download = report.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Download started",
+          description: `Downloading ${report.file_name}`,
+        });
+      } catch (error) {
+        console.error('Download error:', error);
+        toast({
+          title: "Download failed",
+          description: "There was a problem downloading your report",
+          variant: "destructive",
+        });
+      }
     }
+
+    setPendingAction(null);
   };
   
   const handleGoToUpload = () => {
@@ -336,7 +363,7 @@ export default function ReportsPage() {
                               <Button 
                                 size="icon" 
                                 variant="ghost"
-                                onClick={() => window.open(report.file_url, '_blank')}
+                                onClick={() => handleView(report)}
                                 title="View"
                               >
                                 <Eye className="h-4 w-4" />
@@ -344,7 +371,7 @@ export default function ReportsPage() {
                               <Button 
                                 size="icon" 
                                 variant="ghost"
-                                onClick={() => handleDownload(report.file_url, report.file_name)}
+                                onClick={() => handleDownload(report)}
                                 title="Download"
                               >
                                 <Download className="h-4 w-4" />
@@ -429,6 +456,19 @@ export default function ReportsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PIN Authentication Dialog */}
+      <PinAuthDialog
+        open={!!pendingAction}
+        onOpenChange={(open) => !open && setPendingAction(null)}
+        onSuccess={executePendingAction}
+        title={pendingAction?.type === 'view' ? 'Secure Access Required' : 'Download Authorization'}
+        description={
+          pendingAction?.type === 'view' 
+            ? `Enter your PIN to view "${pendingAction.report.file_name}"`
+            : `Enter your PIN to download "${pendingAction?.report.file_name}"`
+        }
+      />
     </AppLayout>
   );
 }
