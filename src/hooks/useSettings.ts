@@ -53,22 +53,40 @@ export function useSettings() {
       
       try {
         // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error("Error fetching user:", error);
+          toast("Error loading profile", {
+            description: "Failed to load user profile data"
+          });
+          return;
+        }
         
         if (user) {
-          // Set the email from the auth user
+          console.log("User data:", user);
+          console.log("User metadata:", user.user_metadata);
+          
+          // Safely access user metadata with fallbacks
+          const metadata = user.user_metadata || {};
+          
+          // Set the profile data with safe fallbacks
           setProfileData(prev => ({
             ...prev,
             email: user.email || "",
-            // Extract first name and last name from user metadata if available
-            firstName: user.user_metadata?.first_name || "",
-            lastName: user.user_metadata?.last_name || "",
-            phone: user.user_metadata?.phone || "",
-            language: user.user_metadata?.language || "en",
+            firstName: metadata.first_name || "",
+            lastName: metadata.last_name || "",
+            phone: metadata.phone || "",
+            language: metadata.language || "en",
           }));
+        } else {
+          console.log("No user found");
         }
       } catch (error) {
         console.error("Error loading user profile:", error);
+        toast("Error loading profile", {
+          description: "An unexpected error occurred while loading your profile"
+        });
       } finally {
         setLoading(false);
       }
@@ -106,7 +124,10 @@ export function useSettings() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating user:", error);
+        throw error;
+      }
       
       toast("Settings saved", {
         description: "Your settings have been saved successfully."

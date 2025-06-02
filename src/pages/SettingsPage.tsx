@@ -5,6 +5,8 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { PrivacySettings } from "@/components/settings/PrivacySettings";
 import { useSettings } from "@/hooks/useSettings";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle } from "lucide-react";
 
 export default function SettingsPage() {
   const {
@@ -18,6 +20,25 @@ export default function SettingsPage() {
     handlePrivacyChange,
     handleSave
   } = useSettings();
+
+  // Add a safety check for data integrity
+  if (!profileData || !notifications || !privacy) {
+    return (
+      <AppLayout title="Settings">
+        <Card>
+          <CardContent className="flex items-center justify-center p-8 text-center">
+            <div className="space-y-4">
+              <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto" />
+              <h3 className="text-lg font-medium">Loading Settings</h3>
+              <p className="text-sm text-muted-foreground">
+                Please wait while we load your settings...
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout title="Settings">
