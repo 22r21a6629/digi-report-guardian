@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +17,7 @@ import { UploadProgress } from "./form/UploadProgress";
 
 export function UploadReport() {
   const [reportType, setReportType] = useState("radiology"); // Set default value
-  const [hospital, setHospital] = useState("");
+  const [hospital, setHospital] = useState(""); // Ensure it's initialized as empty string
   const [reportDate, setReportDate] = useState<Date | undefined>(undefined);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -26,6 +25,7 @@ export function UploadReport() {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [user, setUser] = useState<any>(null);
+  const [isComponentReady, setIsComponentReady] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -46,6 +46,13 @@ export function UploadReport() {
     };
     
     getUser();
+    
+    // Set component as ready after a small delay to ensure all components are properly initialized
+    const timer = setTimeout(() => {
+      setIsComponentReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [navigate, toast]);
 
   const handleAddTag = (newTag: string) => {
@@ -172,7 +179,7 @@ export function UploadReport() {
       });
       
       // Reset form
-      setReportType("");
+      setReportType("radiology");
       setHospital("");
       setReportDate(undefined);
       setDescription("");
@@ -202,6 +209,19 @@ export function UploadReport() {
     }
   };
 
+  // Don't render form components until everything is ready
+  if (!isComponentReady) {
+    return (
+      <Card className="w-full">
+        <CardContent className="pt-6">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-pulse">Loading form...</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -211,7 +231,7 @@ export function UploadReport() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ReportTypeField value={reportType} onChange={setReportType} />
-            <HospitalField value={hospital} onChange={setHospital} />
+            <HospitalField value={hospital || ""} onChange={setHospital} />
           </div>
           
           <ReportDateField value={reportDate} onChange={setReportDate} />
