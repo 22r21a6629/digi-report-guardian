@@ -15,7 +15,7 @@ interface HospitalFieldProps {
 
 export function HospitalField({ value, onChange }: HospitalFieldProps) {
   const [open, setOpen] = useState(false);
-  const [hospitals, setHospitals] = useState<string[]>([]);
+  const [hospitals, setHospitals] = useState<string[]>([]); // Initialize as empty array
   const [searchValue, setSearchValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -44,6 +44,22 @@ export function HospitalField({ value, onChange }: HospitalFieldProps) {
       setOpen(false);
     }
   };
+
+  // Don't render the popover content until hospitals are loaded
+  if (!hospitals || hospitals.length === 0) {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="hospital">Hospital</Label>
+        <Input
+          type="text"
+          id="hospital"
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter hospital name"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -107,7 +123,7 @@ export function HospitalField({ value, onChange }: HospitalFieldProps) {
         <Input
           type="text"
           id="hospital"
-          value={value}
+          value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Or type to enter manually"
           className="mt-2"
