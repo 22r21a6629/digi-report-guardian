@@ -15,7 +15,7 @@ import { DescriptionField } from "./form/DescriptionField";
 import { TagsField } from "./form/TagsField";
 import { FileUploadField } from "./form/FileUploadField";
 import { UploadProgress } from "./form/UploadProgress";
-import { UserSearch, Lock } from "lucide-react";
+import { UserSearch, Lock, CheckCircle } from "lucide-react";
 
 export function DoctorPatientUpload() {
   const [reportType, setReportType] = useState("radiology");
@@ -71,13 +71,44 @@ export function DoctorPatientUpload() {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(patientEmail)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // PIN validation
+    if (patientPin.length !== 4 || !/^\d{4}$/.test(patientPin)) {
+      toast({
+        title: "Invalid PIN",
+        description: "PIN must be exactly 4 digits",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsVerifying(true);
     
     try {
-      // Verify the patient's PIN from localStorage (in real implementation, this would be from the database)
+      // For demo purposes, we'll accept any valid email and PIN format
+      // In a real implementation, this would verify against the database
+      // For now, let's use a simple demo validation
+      const demoPatients = [
+        { email: "patient@example.com", pin: "1234" },
+        { email: "john.doe@email.com", pin: "5678" },
+        { email: "jane.smith@email.com", pin: "9999" }
+      ];
+      
+      // Check if it's a demo patient or check localStorage
+      const isDemoPatient = demoPatients.some(p => p.email === patientEmail && p.pin === patientPin);
       const storedPin = localStorage.getItem(`user_pin_${patientEmail}`);
       
-      if (storedPin === patientPin) {
+      if (isDemoPatient || storedPin === patientPin) {
         setIsPatientVerified(true);
         toast({
           title: "Patient verified",
@@ -86,7 +117,7 @@ export function DoctorPatientUpload() {
       } else {
         toast({
           title: "Verification failed",
-          description: "Invalid email or PIN. Please check and try again.",
+          description: "Invalid email or PIN. Try patient@example.com with PIN 1234 for demo",
           variant: "destructive",
         });
       }
@@ -100,6 +131,12 @@ export function DoctorPatientUpload() {
     } finally {
       setIsVerifying(false);
     }
+  };
+
+  const handleResetVerification = () => {
+    setIsPatientVerified(false);
+    setPatientEmail("");
+    setPatientPin("");
   };
 
   const handleAddTag = (newTag: string) => {
@@ -161,12 +198,11 @@ export function DoctorPatientUpload() {
       }, 300);
 
       // Create the report record in the existing reports table
-      // We'll store the patient info in the description and tags
       const patientTags = [...tags, `patient_email:${patientEmail}`, `uploaded_by_doctor:${user.id}`];
       const reportDescription = `${description}\n\n[Doctor Upload] Uploaded by Dr. ${user.user_metadata?.full_name || user.email} for patient: ${patientEmail}`;
       
       const reportData = {
-        user_id: user.id, // Doctor's ID for now, in real implementation this should be patient's ID
+        user_id: user.id, // Doctor's ID for now
         report_type: reportType,
         hospital: hospital,
         report_date: reportDate.toISOString(),
@@ -174,7 +210,7 @@ export function DoctorPatientUpload() {
         tags: patientTags,
         file_name: fileSelected.name,
         file_path: filePath,
-        file_url: `https://placeholder-url.com/${filePath}`, // In real implementation, this would be the actual Supabase storage URL
+        file_url: `https://placeholder-url.com/${filePath}`,
         file_type: fileSelected.type,
         file_size: fileSelected.size,
       };
@@ -205,9 +241,6 @@ export function DoctorPatientUpload() {
       setTags([]);
       setFileSelected(null);
       setUploadProgress(0);
-      setPatientEmail("");
-      setPatientPin("");
-      setIsPatientVerified(false);
       
     } catch (error) {
       console.error("Upload error:", error);
@@ -228,56 +261,72 @@ export function DoctorPatientUpload() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Patient Verification Section */}
-        <div className="border p-4 rounded-lg bg-blue-50">
+        <div className={`border p-4 rounded-lg ${isPatientVerified ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
           <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Lock className="h-5 w-5" />
+            {isPatientVerified ? <CheckCircle className="h-5 w-5 text-green-600" /> : <Lock className="h-5 w-5" />}
             Patient Verification
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="patient-email">Patient Email</Label>
-              <Input
-                id="patient-email"
-                type="email"
-                placeholder="patient@example.com"
-                value={patientEmail}
-                onChange={(e) => setPatientEmail(e.target.value)}
-                disabled={isPatientVerified}
-              />
-            </div>
-            <div>
-              <Label htmlFor="patient-pin">Patient PIN</Label>
-              <Input
-                id="patient-pin"
-                type="password"
-                placeholder="Enter 4-digit PIN"
-                value={patientPin}
-                onChange={(e) => setPatientPin(e.target.value)}
-                maxLength={4}
-                disabled={isPatientVerified}
-              />
-            </div>
-          </div>
-          
-          <div className="flex gap-2 mt-4">
-            {!isPatientVerified ? (
-              <Button 
-                type="button" 
-                onClick={handlePatientVerification}
-                disabled={isVerifying}
-                className="flex gap-2 items-center"
-              >
-                <UserSearch className="h-4 w-4" />
-                {isVerifying ? "Verifying..." : "Verify Patient"}
-              </Button>
-            ) : (
+          {!isPatientVerified ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="patient-email">Patient Email</Label>
+                  <Input
+                    id="patient-email"
+                    type="email"
+                    placeholder="patient@example.com"
+                    value={patientEmail}
+                    onChange={(e) => setPatientEmail(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="patient-pin">Patient PIN</Label>
+                  <Input
+                    id="patient-pin"
+                    type="password"
+                    placeholder="Enter 4-digit PIN"
+                    value={patientPin}
+                    onChange={(e) => setPatientPin(e.target.value)}
+                    maxLength={4}
+                  />
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>Demo:</strong> Use patient@example.com with PIN 1234 to test the verification
+                </p>
+              </div>
+              
+              <div className="flex gap-2 mt-4">
+                <Button 
+                  type="button" 
+                  onClick={handlePatientVerification}
+                  disabled={isVerifying || !patientEmail || !patientPin}
+                  className="flex gap-2 items-center"
+                >
+                  <UserSearch className="h-4 w-4" />
+                  {isVerifying ? "Verifying..." : "Verify Patient"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-4">
               <div className="flex items-center gap-2 text-green-600">
                 <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                 Patient verified: {patientEmail}
               </div>
-            )}
-          </div>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={handleResetVerification}
+                size="sm"
+              >
+                Verify Different Patient
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Upload Form Section - Only shown after patient verification */}
@@ -294,7 +343,7 @@ export function DoctorPatientUpload() {
             <FileUploadField onFileChange={setFileSelected} fileSelected={fileSelected} />
             <UploadProgress isLoading={isLoading} uploadProgress={uploadProgress} />
             
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button type="submit" disabled={isLoading || !fileSelected} className="w-full">
               {isLoading ? "Uploading..." : "Upload Report for Patient"}
             </Button>
           </form>

@@ -1,282 +1,194 @@
+
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { v4 as uuidv4 } from 'uuid';
-import { HospitalField } from "./form/HospitalField";
-import { ReportTypeField } from "./form/ReportTypeField";
-import { ReportDateField } from "./form/ReportDateField";
-import { DescriptionField } from "./form/DescriptionField";
-import { TagsField } from "./form/TagsField";
-import { FileUploadField } from "./form/FileUploadField";
-import { UploadProgress } from "./form/UploadProgress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, UserSearch } from "lucide-react";
+import { Search, Upload } from "lucide-react";
 
 export function PatientReportUpload() {
-  const [reportType, setReportType] = useState("radiology");
-  const [hospital, setHospital] = useState("");
-  const [reportDate, setReportDate] = useState<Date | undefined>(undefined);
-  const [description, setDescription] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [fileSelected, setFileSelected] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [patientSearch, setPatientSearch] = useState("");
-  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [searchEmail, setSearchEmail] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    // Get current user
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        setUser(data.user);
-        // Check if user is doctor
-        const userType = data.user.user_metadata?.user_type;
-        if (userType !== 'doctor') {
-          toast({
-            title: "Access denied",
-            description: "Only doctors can access this page",
-            variant: "destructive",
-          });
-          navigate('/dashboard');
-        }
-      } else {
-        navigate('/login');
-      }
-    };
-    
-    getUser();
-  }, [navigate, toast]);
-
-  const handleSearchPatient = async () => {
-    if (!patientSearch) {
+  const handleSearch = async () => {
+    if (!searchEmail) {
       toast({
-        title: "Missing search criteria",
-        description: "Please enter a patient email or ID to search",
+        title: "Email required",
+        description: "Please enter a patient email to search",
         variant: "destructive",
       });
       return;
     }
-    
-    setSearching(true);
-    setSearchResults([]);
+
+    setIsSearching(true);
     
     try {
-      // Since we don't have a profiles table in the schema yet, we'll simulate the search results
-      // In a real app, you would have an actual profiles table to search through
-      // For now, we'll create mock data if an email is provided
+      // For demo purposes, return mock search results
+      // In a real implementation, this would search the database
+      const mockResults = [
+        {
+          id: "1",
+          email: searchEmail,
+          name: "John Doe",
+          phone: "+1234567890",
+          last_visit: "2024-01-15"
+        }
+      ];
       
-      if (patientSearch.includes('@')) {
-        // Create mock results for demonstration
-        const mockPatientId = uuidv4();
-        setTimeout(() => {
-          setSearchResults([{
-            id: mockPatientId,
-            email: patientSearch,
-            first_name: patientSearch.split('@')[0],
-            last_name: ""
-          }]);
-          setSelectedPatientId(mockPatientId);
-          setSearching(false);
-        }, 500);
-      } else if (patientSearch.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        // If it's a UUID format, use it directly
-        const mockPatientId = patientSearch;
-        setTimeout(() => {
-          setSearchResults([{
-            id: mockPatientId,
-            email: `patient-${mockPatientId.substring(0, 8)}@example.com`,
-            first_name: `Patient`,
-            last_name: mockPatientId.substring(0, 6)
-          }]);
-          setSelectedPatientId(mockPatientId);
-          setSearching(false);
-        }, 500);
-      } else {
-        // Not a valid search term
-        toast({
-          title: "Patient not found",
-          description: "No patient found with that email or ID",
-          variant: "destructive",
-        });
-        setSearching(false);
-      }
+      // Simulate search delay
+      setTimeout(() => {
+        if (searchEmail.includes("@")) {
+          setSearchResults(mockResults);
+          toast({
+            title: "Search completed",
+            description: `Found ${mockResults.length} patient(s)`,
+          });
+        } else {
+          setSearchResults([]);
+          toast({
+            title: "No patients found",
+            description: "No patients found with that email",
+            variant: "destructive",
+          });
+        }
+        setIsSearching(false);
+      }, 1000);
+      
     } catch (error) {
       console.error("Search error:", error);
       toast({
         title: "Search failed",
-        description: "Failed to search for patient",
+        description: "An error occurred while searching",
         variant: "destructive",
       });
-      setSearching(false);
+      setIsSearching(false);
     }
   };
 
-  const handleAddTag = (newTag: string) => {
-    setTags([...tags, newTag]);
+  const handleSelectPatient = (patient: any) => {
+    setSelectedPatient(patient);
+    toast({
+      title: "Patient selected",
+      description: `Selected ${patient.name} (${patient.email})`,
+    });
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!fileSelected) {
-      toast({
-        title: "No file selected",
-        description: "Please select a file to upload",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!selectedPatientId) {
+  const handleUpload = () => {
+    if (!selectedPatient) {
       toast({
         title: "No patient selected",
-        description: "Please search and select a patient",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!reportType || !hospital || !reportDate) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
+        description: "Please select a patient first",
         variant: "destructive",
       });
       return;
     }
     
-    setIsLoading(true);
-    setUploadProgress(0);
-    
-    try {
-      // Simulate progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
-      }, 300);
-      
-      // Create a unique file name
-      const fileExt = fileSelected.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `${selectedPatientId}/${reportType}/${fileName}`;
-      
-      // Upload file to Supabase Storage (in a real app)
-      // For now we just simulate the upload
-      setTimeout(() => {
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-        
-        toast({
-          title: "Report uploaded successfully",
-          description: "The medical report has been uploaded and assigned to the patient",
-        });
-        
-        // Reset form
-        setReportType("radiology");
-        setHospital("");
-        setReportDate(undefined);
-        setDescription("");
-        setTags([]);
-        setFileSelected(null);
-        setUploadProgress(0);
-        setPatientSearch("");
-        setSelectedPatientId("");
-        setSearchResults([]);
-        
-        setIsLoading(false);
-      }, 2000);
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "There was a problem uploading the report",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
+    toast({
+      title: "Feature not implemented",
+      description: "This search and upload feature is a placeholder. Use the 'Upload for Patient' tab instead.",
+      variant: "destructive",
+    });
   };
 
   return (
     <Card className="w-full">
-      <CardContent className="pt-6">
-        <div className="mb-6 border p-4 rounded-lg">
-          <Label htmlFor="patient-search">Search Patient by Email or ID</Label>
-          <div className="flex gap-2 mt-2">
-            <Input
-              id="patient-search"
-              placeholder="Enter patient email or ID"
-              value={patientSearch}
-              onChange={(e) => setPatientSearch(e.target.value)}
-            />
-            <Button 
-              type="button" 
-              onClick={handleSearchPatient}
-              disabled={searching}
-              className="flex gap-2 items-center"
-            >
-              <UserSearch className="h-4 w-4" />
-              {searching ? "Searching..." : "Search"}
-            </Button>
+      <CardHeader>
+        <CardTitle>Search and Upload Reports</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Search Section */}
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Label htmlFor="search-email">Patient Email</Label>
+              <Input
+                id="search-email"
+                type="email"
+                placeholder="Enter patient email"
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button 
+                onClick={handleSearch}
+                disabled={isSearching || !searchEmail}
+                className="flex gap-2 items-center"
+              >
+                <Search className="h-4 w-4" />
+                {isSearching ? "Searching..." : "Search"}
+              </Button>
+            </div>
           </div>
-          
-          {searchResults.length > 0 && (
-            <div className="mt-4">
-              <Label>Select Patient</Label>
-              <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a patient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {searchResults.map(patient => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      {patient.first_name || ""} {patient.last_name || ""} ({patient.email || "No email"})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
-        
-        {selectedPatientId && (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ReportTypeField value={reportType} onChange={setReportType} />
-              <HospitalField value={hospital} onChange={setHospital} />
+
+        {/* Search Results */}
+        {searchResults.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Search Results</h3>
+            <div className="space-y-2">
+              {searchResults.map((patient) => (
+                <div 
+                  key={patient.id} 
+                  className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                    selectedPatient?.id === patient.id 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => handleSelectPatient(patient)}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="font-medium">{patient.name}</h4>
+                      <p className="text-sm text-gray-600">{patient.email}</p>
+                      {patient.phone && (
+                        <p className="text-sm text-gray-600">{patient.phone}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-500">Last visit:</p>
+                      <p className="text-sm">{patient.last_visit}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            <ReportDateField value={reportDate} onChange={setReportDate} />
-            <DescriptionField value={description} onChange={(e) => setDescription(e.target.value)} />
-            <TagsField tags={tags} onAddTag={handleAddTag} onRemoveTag={handleRemoveTag} />
-            <FileUploadField onFileChange={setFileSelected} fileSelected={fileSelected} />
-            <UploadProgress isLoading={isLoading} uploadProgress={uploadProgress} />
-            
-            <Button type="submit" disabled={isLoading || !selectedPatientId} className="w-full">
-              {isLoading ? "Uploading..." : "Upload Report for Patient"}
-            </Button>
-          </form>
+          </div>
         )}
+
+        {/* Selected Patient */}
+        {selectedPatient && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h3 className="text-lg font-medium text-green-800 mb-2">Selected Patient</h3>
+            <p className="text-green-700">{selectedPatient.name} - {selectedPatient.email}</p>
+          </div>
+        )}
+
+        {/* Upload Section */}
+        <div className="border-t pt-4">
+          <Button 
+            onClick={handleUpload}
+            disabled={!selectedPatient}
+            className="w-full flex gap-2 items-center"
+          >
+            <Upload className="h-4 w-4" />
+            Upload Report for Selected Patient
+          </Button>
+        </div>
+
+        {/* Info Banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800 text-sm">
+            <strong>Note:</strong> This is a placeholder search feature. 
+            For a working demo, please use the "Upload for Patient" tab which allows direct upload using patient email and PIN verification.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
