@@ -160,14 +160,18 @@ export function DoctorPatientUpload() {
         });
       }, 300);
 
-      // Create the report record in the database
+      // Create the report record in the existing reports table
+      // We'll store the patient info in the description and tags
+      const patientTags = [...tags, `patient_email:${patientEmail}`, `uploaded_by_doctor:${user.id}`];
+      const reportDescription = `${description}\n\n[Doctor Upload] Uploaded by Dr. ${user.user_metadata?.full_name || user.email} for patient: ${patientEmail}`;
+      
       const reportData = {
-        user_id: user.id, // Doctor's ID
+        user_id: user.id, // Doctor's ID for now, in real implementation this should be patient's ID
         report_type: reportType,
         hospital: hospital,
         report_date: reportDate.toISOString(),
-        description: description,
-        tags: tags,
+        description: reportDescription,
+        tags: patientTags,
         file_name: fileSelected.name,
         file_path: filePath,
         file_url: `https://placeholder-url.com/${filePath}`, // In real implementation, this would be the actual Supabase storage URL
@@ -183,21 +187,6 @@ export function DoctorPatientUpload() {
 
       if (reportError) {
         throw reportError;
-      }
-
-      // Create patient_reports record to link doctor upload to patient
-      const { error: patientReportError } = await supabase
-        .from('patient_reports')
-        .insert({
-          doctor_id: user.id,
-          patient_email: patientEmail,
-          report_id: reportRecord.id,
-          verified_pin: patientPin // In real implementation, this should be encrypted
-        });
-
-      if (patientReportError) {
-        console.error("Patient report link error:", patientReportError);
-        // Continue even if this fails, as the main report was uploaded
       }
 
       clearInterval(progressInterval);
