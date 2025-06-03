@@ -5,8 +5,8 @@ import { RegisterForm } from "@/components/auth/RegisterForm";
 export default function RegisterPage() {
   return (
     <AuthLayout 
-      title="Create an account" 
-      subtitle="Fill in the form below to create your account"
+      title="Create your DiagnoWeb account" 
+      subtitle="Join DiagnoWeb to securely manage your medical reports"
     >
       <RegisterForm />
     </AuthLayout>

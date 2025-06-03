@@ -1,4 +1,3 @@
-
 import { AppLayout } from "@/components/layout/AppLayout";
 import { UploadReport } from "@/components/reports/UploadReport";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +60,7 @@ export default function UploadPage() {
   };
 
   return (
-    <AppLayout title="Upload Report">
+    <AppLayout title="Upload Report - DiagnoWeb">
       {isCheckingBucket ? (
         <div className="flex justify-center items-center my-8 p-6">
           <div className="animate-pulse text-center">
