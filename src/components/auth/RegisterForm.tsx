@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export function RegisterForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [registeredUserType, setRegisteredUserType] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -58,7 +60,7 @@ export function RegisterForm() {
     try {
       console.log("Registering user:", data.email, "with type:", data.userType);
       
-      // Register the user with Supabase
+      // Register the user with Supabase including user type in metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -74,7 +76,6 @@ export function RegisterForm() {
       if (authError) {
         console.error("Registration error:", authError);
         
-        // Handle specific error cases
         if (authError.message.includes("already registered")) {
           setError("This email is already registered. Please try logging in instead.");
           toast({
@@ -95,6 +96,7 @@ export function RegisterForm() {
         
         if (authData.user) {
           setRegisteredEmail(data.email);
+          setRegisteredUserType(data.userType);
           setShowPinSetup(true);
         } else {
           setError("Something went wrong during registration. Please try again.");
@@ -115,14 +117,17 @@ export function RegisterForm() {
   };
 
   const handlePinSet = async (pin: string) => {
-    // In a real application, you would store this PIN securely in the user's profile
-    // For now, we'll store it in localStorage as a demo
+    // Store the PIN in localStorage (in real implementation, this would be encrypted and stored securely)
     localStorage.setItem(`user_pin_${registeredEmail}`, pin);
     
-    setSuccessMessage("Account created successfully! Please check your email to verify your account before signing in.");
+    let userTypeLabel = "patient";
+    if (registeredUserType === "doctor") userTypeLabel = "doctor";
+    if (registeredUserType === "hospital") userTypeLabel = "hospital administrator";
+    
+    setSuccessMessage(`Account created successfully as ${userTypeLabel}! Please check your email to verify your account before signing in.`);
     toast({
       title: "Account created successfully",
-      description: "Please check your email to verify your account.",
+      description: `You are registered as a ${userTypeLabel}. Please check your email to verify your account.`,
     });
     
     setShowPinSetup(false);
@@ -132,7 +137,8 @@ export function RegisterForm() {
       navigate("/login", { 
         state: { 
           email: registeredEmail,
-          justRegistered: true 
+          justRegistered: true,
+          userType: registeredUserType
         } 
       });
     }, 2000);

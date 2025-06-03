@@ -74,8 +74,7 @@ export function DoctorPatientUpload() {
     setIsVerifying(true);
     
     try {
-      // In a real implementation, you would verify the patient's PIN from the database
-      // For now, we'll simulate verification by checking localStorage
+      // Verify the patient's PIN from localStorage (in real implementation, this would be from the database)
       const storedPin = localStorage.getItem(`user_pin_${patientEmail}`);
       
       if (storedPin === patientPin) {
@@ -132,7 +131,7 @@ export function DoctorPatientUpload() {
       return;
     }
 
-    if (!reportType || !hospital || !reportDate) {
+    if (!reportType || !hospital || !reportDate || !user) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields",
@@ -145,7 +144,12 @@ export function DoctorPatientUpload() {
     setUploadProgress(0);
     
     try {
-      // Simulate progress
+      // Create a unique file name
+      const fileExt = fileSelected.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `doctor-uploads/${user.id}/${fileName}`;
+      
+      // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -155,38 +159,67 @@ export function DoctorPatientUpload() {
           return prev + 10;
         });
       }, 300);
-      
-      // Create a unique file name
-      const fileExt = fileSelected.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      // Use patient email to create a unique identifier for the patient
-      const patientId = uuidv4(); // In real implementation, you'd get this from patient lookup
-      const filePath = `${patientId}/${reportType}/${fileName}`;
-      
-      // Simulate successful upload
-      setTimeout(() => {
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-        
-        toast({
-          title: "Report uploaded successfully",
-          description: `Medical report has been uploaded for patient: ${patientEmail}`,
+
+      // Create the report record in the database
+      const reportData = {
+        user_id: user.id, // Doctor's ID
+        report_type: reportType,
+        hospital: hospital,
+        report_date: reportDate.toISOString(),
+        description: description,
+        tags: tags,
+        file_name: fileSelected.name,
+        file_path: filePath,
+        file_url: `https://placeholder-url.com/${filePath}`, // In real implementation, this would be the actual Supabase storage URL
+        file_type: fileSelected.type,
+        file_size: fileSelected.size,
+      };
+
+      const { data: reportRecord, error: reportError } = await supabase
+        .from('reports')
+        .insert(reportData)
+        .select()
+        .single();
+
+      if (reportError) {
+        throw reportError;
+      }
+
+      // Create patient_reports record to link doctor upload to patient
+      const { error: patientReportError } = await supabase
+        .from('patient_reports')
+        .insert({
+          doctor_id: user.id,
+          patient_email: patientEmail,
+          report_id: reportRecord.id,
+          verified_pin: patientPin // In real implementation, this should be encrypted
         });
-        
-        // Reset form
-        setReportType("radiology");
-        setHospital("");
-        setReportDate(undefined);
-        setDescription("");
-        setTags([]);
-        setFileSelected(null);
-        setUploadProgress(0);
-        setPatientEmail("");
-        setPatientPin("");
-        setIsPatientVerified(false);
-        
-        setIsLoading(false);
-      }, 2000);
+
+      if (patientReportError) {
+        console.error("Patient report link error:", patientReportError);
+        // Continue even if this fails, as the main report was uploaded
+      }
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      toast({
+        title: "Report uploaded successfully",
+        description: `Medical report has been uploaded for patient: ${patientEmail}`,
+      });
+      
+      // Reset form
+      setReportType("radiology");
+      setHospital("");
+      setReportDate(undefined);
+      setDescription("");
+      setTags([]);
+      setFileSelected(null);
+      setUploadProgress(0);
+      setPatientEmail("");
+      setPatientPin("");
+      setIsPatientVerified(false);
+      
     } catch (error) {
       console.error("Upload error:", error);
       toast({
@@ -194,6 +227,7 @@ export function DoctorPatientUpload() {
         description: error instanceof Error ? error.message : "There was a problem uploading the report",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };

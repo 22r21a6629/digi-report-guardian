@@ -24,9 +24,14 @@ const Index = () => {
             console.log("Doctor user detected, navigating to doctor dashboard");
             navigate("/doctor-dashboard");
             return;
+          } else if (userType === 'hospital') {
+            // Hospital admins could go to a hospital dashboard (for future implementation)
+            console.log("Hospital admin detected, navigating to dashboard");
+            navigate("/dashboard");
+            return;
           }
           
-          // For non-doctors, check reports
+          // For patients, check if they have reports
           const { data: reports, error } = await supabase
             .from('reports')
             .select('id')
@@ -40,13 +45,10 @@ const Index = () => {
           }
 
           if (reports && reports.length > 0) {
-            // Users with reports complete profile first
-            toast("Complete your profile", {
-              description: "Please complete your profile information"
-            });
-            navigate("/settings");
+            // Users with reports go to dashboard
+            navigate("/dashboard");
           } else {
-            // Users without reports go to dashboard
+            // Users without reports go to dashboard (they can upload from there)
             navigate("/dashboard");
           }
         } else {
