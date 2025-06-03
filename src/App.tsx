@@ -35,7 +35,7 @@ const App = () => {
       
       // Update user role from metadata
       if (session?.user) {
-        const role = session.user.user_metadata?.user_type || null;
+        const role = session.user.user_metadata?.user_type || 'patient';
         console.log("User role from metadata:", role);
         setUserRole(role);
       } else {
@@ -52,7 +52,7 @@ const App = () => {
       
       // Set initial user role from metadata
       if (session?.user) {
-        const role = session.user.user_metadata?.user_type || null;
+        const role = session.user.user_metadata?.user_type || 'patient';
         console.log("Initial user role from metadata:", role);
         setUserRole(role);
       }
@@ -71,6 +71,10 @@ const App = () => {
     // Check for role if specified
     if (requiredRole && userRole !== requiredRole) {
       console.log(`Access denied: Required role "${requiredRole}" but user has role "${userRole}"`);
+      // Redirect doctors to their dashboard if they try to access patient routes
+      if (userRole === 'doctor' && requiredRole !== 'doctor') {
+        return <Navigate to="/doctor-dashboard" />;
+      }
       return <Navigate to="/dashboard" />;
     }
     
@@ -89,17 +93,17 @@ const App = () => {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             
-            {/* Protected Routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            } />
-            
             {/* Doctor-specific routes */}
             <Route path="/doctor-dashboard" element={
               <ProtectedRoute requiredRole="doctor">
                 <DoctorDashboardPage />
+              </ProtectedRoute>
+            } />
+            
+            {/* Patient-specific routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <DashboardPage />
               </ProtectedRoute>
             } />
             

@@ -18,38 +18,20 @@ const Index = () => {
           const userType = session.user.user_metadata?.user_type;
           console.log("User type:", userType);
           
-          // Different navigation logic based on user type
+          // Redirect based on user type
           if (userType === 'doctor') {
-            // Doctors go to the doctor dashboard
             console.log("Doctor user detected, navigating to doctor dashboard");
             navigate("/doctor-dashboard");
             return;
           } else if (userType === 'hospital') {
-            // Hospital admins could go to a hospital dashboard (for future implementation)
             console.log("Hospital admin detected, navigating to dashboard");
             navigate("/dashboard");
             return;
-          }
-          
-          // For patients, check if they have reports
-          const { data: reports, error } = await supabase
-            .from('reports')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .limit(1);
-            
-          if (error) {
-            console.error("Error checking reports:", error);
+          } else {
+            // For patients or users without specified type
+            console.log("Patient user detected, navigating to dashboard");
             navigate("/dashboard");
             return;
-          }
-
-          if (reports && reports.length > 0) {
-            // Users with reports go to dashboard
-            navigate("/dashboard");
-          } else {
-            // Users without reports go to dashboard (they can upload from there)
-            navigate("/dashboard");
           }
         } else {
           navigate("/login");

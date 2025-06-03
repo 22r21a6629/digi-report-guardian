@@ -10,20 +10,13 @@ import {
   Settings, 
   LogOut, 
   Menu, 
-  X
+  UserPlus,
+  Stethoscope
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-
-const navItems = [
-  { name: "Dashboard", path: "/dashboard", icon: Home },
-  { name: "My Reports", path: "/reports", icon: FileText },
-  { name: "Upload", path: "/upload", icon: Upload },
-  { name: "Search", path: "/search", icon: Search },
-  { name: "Hospitals", path: "/hospitals", icon: Hospital },
-  { name: "Settings", path: "/settings", icon: Settings },
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SidebarProps {
   className?: string;
@@ -33,17 +26,55 @@ export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [userType, setUserType] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserType = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserType(session.user.user_metadata?.user_type || 'patient');
+      }
+    };
+    getUserType();
+  }, []);
+
+  // Different navigation items based on user type
+  const getNavItems = () => {
+    if (userType === 'doctor') {
+      return [
+        { name: "Doctor Dashboard", path: "/doctor-dashboard", icon: Stethoscope },
+        { name: "Settings", path: "/settings", icon: Settings },
+      ];
+    } else {
+      // Regular patient navigation
+      return [
+        { name: "Dashboard", path: "/dashboard", icon: Home },
+        { name: "My Reports", path: "/reports", icon: FileText },
+        { name: "Upload", path: "/upload", icon: Upload },
+        { name: "Search", path: "/search", icon: Search },
+        { name: "Hospitals", path: "/hospitals", icon: Hospital },
+        { name: "Settings", path: "/settings", icon: Settings },
+      ];
+    }
+  };
+
+  const navItems = getNavItems();
 
   const handleNavigation = (path: string) => {
     navigate(path);
     setIsMobileOpen(false);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="p-6">
         <div className="flex items-center justify-center mb-8">
-          <h1 className="text-2xl font-bold text-dignoweb-primary">Dignoweb</h1>
+          <h1 className="text-2xl font-bold text-dignoweb-primary">DiagnoWeb</h1>
         </div>
         <nav className="space-y-1">
           {navItems.map((item) => (
@@ -68,7 +99,7 @@ export function Sidebar({ className }: SidebarProps) {
         <Button
           variant="outline"
           className="w-full justify-start"
-          onClick={() => navigate("/login")}
+          onClick={handleLogout}
         >
           <LogOut className="mr-2 h-5 w-5" />
           Logout
