@@ -7,6 +7,7 @@ import { Eye, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { PinAuthDialog } from "@/components/auth/PinAuthDialog";
 
 type Report = {
   id: string;
@@ -18,9 +19,15 @@ type Report = {
   created_at: string;
 };
 
+type PendingAction = {
+  type: 'view' | 'download';
+  report: Report;
+} | null;
+
 export function RecentReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -64,30 +71,48 @@ export function RecentReports() {
   };
 
   const handleView = (report: Report) => {
-    window.open(report.file_url, '_blank');
+    setPendingAction({ type: 'view', report });
   };
 
   const handleDownload = (report: Report) => {
-    try {
-      const link = document.createElement('a');
-      link.href = report.file_url;
-      link.download = report.file_name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
+    setPendingAction({ type: 'download', report });
+  };
+
+  const executePendingAction = () => {
+    if (!pendingAction) return;
+
+    const { type, report } = pendingAction;
+
+    if (type === 'view') {
+      window.open(report.file_url, '_blank');
       toast({
-        title: "Download started",
-        description: `Downloading ${report.file_name}`,
+        title: "Opening report",
+        description: `Opening ${report.file_name}`,
       });
-    } catch (error) {
-      console.error('Download error:', error);
-      toast({
-        title: "Download failed",
-        description: "There was a problem downloading your report",
-        variant: "destructive",
-      });
+    } else if (type === 'download') {
+      try {
+        const link = document.createElement('a');
+        link.href = report.file_url;
+        link.download = report.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Download started",
+          description: `Downloading ${report.file_name}`,
+        });
+      } catch (error) {
+        console.error('Download error:', error);
+        toast({
+          title: "Download failed",
+          description: "There was a problem downloading your report",
+          variant: "destructive",
+        });
+      }
     }
+
+    setPendingAction(null);
   };
 
   const handleViewAll = () => {
@@ -95,79 +120,94 @@ export function RecentReports() {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle>Recent Reports</CardTitle>
-        <Button variant="outline" size="sm" onClick={handleViewAll}>
-          View all
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="text-center py-8">Loading reports...</div>
-        ) : reports.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No reports uploaded yet.</p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => navigate('/upload')}
-            >
-              Upload Your First Report
-            </Button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-2 text-sm font-medium">File Name</th>
-                  <th className="text-left py-3 px-2 text-sm font-medium">Type</th>
-                  <th className="text-left py-3 px-2 text-sm font-medium">Date</th>
-                  <th className="text-left py-3 px-2 text-sm font-medium">Hospital</th>
-                  <th className="text-right py-3 px-2 text-sm font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.map((report) => (
-                  <tr key={report.id} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="py-3 px-2 text-sm">{report.file_name}</td>
-                    <td className="py-3 px-2 text-sm">
-                      <Badge variant="outline">
-                        {getReportTypeDisplay(report.report_type)}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-2 text-sm">
-                      {report.report_date ? new Date(report.report_date).toLocaleDateString() : '-'}
-                    </td>
-                    <td className="py-3 px-2 text-sm">{report.hospital}</td>
-                    <td className="py-3 px-2 text-sm text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          size="icon" 
-                          variant="ghost"
-                          onClick={() => handleView(report)}
-                          title="View"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="icon" 
-                          variant="ghost"
-                          onClick={() => handleDownload(report)}
-                          title="Download"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle>Recent Reports</CardTitle>
+          <Button variant="outline" size="sm" onClick={handleViewAll}>
+            View all
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">Loading reports...</div>
+          ) : reports.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No reports uploaded yet.</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => navigate('/upload')}
+              >
+                Upload Your First Report
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-2 text-sm font-medium">File Name</th>
+                    <th className="text-left py-3 px-2 text-sm font-medium">Type</th>
+                    <th className="text-left py-3 px-2 text-sm font-medium">Date</th>
+                    <th className="text-left py-3 px-2 text-sm font-medium">Hospital</th>
+                    <th className="text-right py-3 px-2 text-sm font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                </thead>
+                <tbody>
+                  {reports.map((report) => (
+                    <tr key={report.id} className="border-b last:border-0 hover:bg-gray-50">
+                      <td className="py-3 px-2 text-sm">{report.file_name}</td>
+                      <td className="py-3 px-2 text-sm">
+                        <Badge variant="outline">
+                          {getReportTypeDisplay(report.report_type)}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-2 text-sm">
+                        {report.report_date ? new Date(report.report_date).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="py-3 px-2 text-sm">{report.hospital}</td>
+                      <td className="py-3 px-2 text-sm text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            size="icon" 
+                            variant="ghost"
+                            onClick={() => handleView(report)}
+                            title="View"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost"
+                            onClick={() => handleDownload(report)}
+                            title="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* PIN Authentication Dialog */}
+      <PinAuthDialog
+        open={!!pendingAction}
+        onOpenChange={(open) => !open && setPendingAction(null)}
+        onSuccess={executePendingAction}
+        title={pendingAction?.type === 'view' ? 'Secure Access Required' : 'Download Authorization'}
+        description={
+          pendingAction?.type === 'view' 
+            ? `Enter your PIN to view "${pendingAction.report.file_name}"`
+            : `Enter your PIN to download "${pendingAction?.report.file_name}"`
+        }
+      />
+    </>
   );
 }
