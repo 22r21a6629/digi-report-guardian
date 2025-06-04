@@ -11,9 +11,9 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col sm:flex-row">
       {/* Left Side - Branding */}
-      <div className="dignoweb-gradient hidden sm:flex sm:w-1/2 p-10 text-white flex-col justify-between animate-fade-in">
+      <div className="diagnoweb-gradient hidden sm:flex sm:w-1/2 p-10 text-white flex-col justify-between animate-fade-in">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Dignoweb</h1>
+          <h1 className="text-3xl font-bold mb-2">Diagnoweb</h1>
           <p className="text-lg opacity-80">
             Your secure medical report management platform
           </p>
@@ -63,7 +63,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         </div>
         
         <div>
-          <p className="text-sm opacity-70">© 2025 Dignoweb. All rights reserved.</p>
+          <p className="text-sm opacity-70">© 2025 Diagnoweb. All rights reserved.</p>
         </div>
       </div>
       

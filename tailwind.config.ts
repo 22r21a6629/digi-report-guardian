@@ -63,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				dignoweb: {
+				diagnoweb: {
 					primary: '#5664d2',
 					secondary: '#8e9aff',
 					accent: '#36d399',

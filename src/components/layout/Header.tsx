@@ -68,7 +68,7 @@ export function Header({ title }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar>
-                <AvatarFallback className="bg-dignoweb-primary text-white">JP</AvatarFallback>
+                <AvatarFallback className="bg-diagnoweb-primary text-white">JP</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>

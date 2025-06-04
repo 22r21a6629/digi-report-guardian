@@ -74,7 +74,7 @@ export function Sidebar({ className }: SidebarProps) {
     <div className="flex flex-col h-full">
       <div className="p-6">
         <div className="flex items-center justify-center mb-8">
-          <h1 className="text-2xl font-bold text-dignoweb-primary">DiagnoWeb</h1>
+          <h1 className="text-2xl font-bold text-diagnoweb-primary">DiagnoWeb</h1>
         </div>
         <nav className="space-y-1">
           {navItems.map((item) => (
@@ -84,8 +84,8 @@ export function Sidebar({ className }: SidebarProps) {
               className={cn(
                 "w-full justify-start mb-1",
                 location.pathname === item.path
-                  ? "bg-dignoweb-primary text-white"
-                  : "hover:bg-dignoweb-light hover:text-dignoweb-primary"
+                  ? "bg-diagnoweb-primary text-white"
+                  : "hover:bg-diagnoweb-light hover:text-diagnoweb-primary"
               )}
               onClick={() => handleNavigation(item.path)}
             >

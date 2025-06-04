@@ -95,11 +95,11 @@
   }
 }
 
-.dignoweb-gradient {
-  @apply bg-gradient-to-br from-dignoweb-primary to-dignoweb-secondary;
+.diagnoweb-gradient {
+  @apply bg-gradient-to-br from-diagnoweb-primary to-diagnoweb-secondary;
 }
 
-.dignoweb-card {
+.diagnoweb-card {
   @apply bg-white rounded-lg shadow-md border border-gray-100 p-6 transition-all duration-200 hover:shadow-lg;
 }
 
