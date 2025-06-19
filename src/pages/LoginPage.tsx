@@ -29,7 +29,7 @@ export default function LoginPage() {
         <CardContent className="text-sm text-blue-600">
           <div className="space-y-2">
             <p>
-              <strong>1.</strong> Check your inbox for a verification email from Supabase/Dignoweb
+              <strong>1.</strong> Check your inbox for a verification email from Supabase/Diagnoweb
             </p>
             <p>
               <strong>2.</strong> Click the verification link in the email

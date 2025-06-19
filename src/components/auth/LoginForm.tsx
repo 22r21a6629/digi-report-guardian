@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export function LoginForm() {
   useEffect(() => {
     if (location.state?.email) {
       form.setValue("email", location.state.email);
-      if (location.state.justRegistered) {
+      if (location.state?.justRegistered) {
         setJustRegistered(true);
       }
     }
@@ -104,7 +105,7 @@ export function LoginForm() {
         
         toast({
           title: "Successfully logged in",
-          description: `Welcome back to Dignoweb${userType ? ` as ${userType}` : ''}`,
+          description: `Welcome back to Diagnoweb${userType ? ` as ${userType}` : ''}`,
         });
         
         // Redirect based on role if needed
@@ -185,21 +186,21 @@ export function LoginForm() {
     <div className="space-y-6">
       {justRegistered && (
         <Alert className="bg-green-50 text-green-800 border-green-200">
-          <CheckCircle className="h-4 w-4 mr-2" />
+          <CheckCircle className="h-4 w-4" />
           <AlertDescription>Account created successfully! You need to verify your email before signing in.</AlertDescription>
         </Alert>
       )}
     
       {errorMessage && (
         <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
-          <AlertTriangle className="h-4 w-4 mr-2" />
+          <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
       )}
       
       {needsVerification && (
         <Alert className="bg-blue-50 text-blue-800 border-blue-200">
-          <Mail className="h-4 w-4 mr-2" />
+          <Mail className="h-4 w-4" />
           <AlertDescription className="flex flex-col gap-2">
             <span>Your email needs verification before you can sign in.</span>
             <Button 
@@ -245,7 +246,7 @@ export function LoginForm() {
                   <FormLabel>Password</FormLabel>
                   <Button 
                     variant="link" 
-                    className="px-0 font-normal text-dignoweb-primary"
+                    className="px-0 font-normal text-diagnoweb-primary"
                     type="button"
                     onClick={() => navigate("/forgot-password")}
                   >
@@ -277,7 +278,7 @@ export function LoginForm() {
           
           <Button 
             type="submit" 
-            className="w-full bg-dignoweb-primary hover:bg-dignoweb-primary/90 flex items-center justify-center gap-2 mt-4"
+            className="w-full bg-diagnoweb-primary hover:bg-diagnoweb-primary/90 flex items-center justify-center gap-2 mt-4"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -296,7 +297,7 @@ export function LoginForm() {
         <span className="text-gray-500">Don't have an account?</span>{" "}
         <Button 
           variant="link" 
-          className="px-0 text-dignoweb-primary"
+          className="px-0 text-diagnoweb-primary"
           onClick={() => navigate("/register")}
         >
           Sign up
