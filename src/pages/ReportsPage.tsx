@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, FileText, Search, X, Upload, File as FileIcon, Image as ImageIcon, Trash2 } from "lucide-react";
+import { Eye, Download, FileText, Search, X, Upload, File as FileIcon, Image as ImageIcon, Trash2, Brain } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toast";
@@ -326,10 +326,16 @@ export default function ReportsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle>All Reports</CardTitle>
-            <Button onClick={handleGoToUpload}>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload New Report
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/insights')}>
+                <Brain className="h-4 w-4 mr-2" />
+                View Insights
+              </Button>
+              <Button onClick={handleGoToUpload}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload New Report
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
