@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { 
   Card, 
@@ -27,7 +28,6 @@ import {
   Upload,
   Home
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toast";
 import { Progress } from "@/components/ui/progress";
@@ -47,18 +47,15 @@ type Report = {
   created_at: string;
 };
 
-
-
 const COLORS = ['#5664d2', '#8e9aff', '#36d399', '#fbbf24', '#f87171'];
 
-export default function AnalysisPage() {
+const AnalysisPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [analyses, setAnalyses] = useState<ReportAnalysis[]>([]);
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
   const [insights, setInsights] = useState<HealthInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState('6months');
 
   useEffect(() => {
     fetchReportsAndAnalyses();
@@ -126,7 +123,7 @@ export default function AnalysisPage() {
   };
 
   const generateMockAnalyses = (reports: Report[]) => {
-    const mockAnalyses: ReportAnalysis[] = reports.map((report, index) => ({
+    const mockAnalyses: ReportAnalysis[] = reports.map((report) => ({
       id: `analysis_${report.id}`,
       reportId: report.id,
       reportType: report.report_type,
@@ -135,7 +132,9 @@ export default function AnalysisPage() {
       riskFactors: getRiskFactorsByType(report.report_type),
       recommendations: getRecommendationsByType(report.report_type),
       followUpNeeded: Math.random() > 0.7,
-      severity: ['normal', 'mild', 'moderate', 'severe'][Math.floor(Math.random() * 4)] as any
+      severity: ['normal', 'mild', 'moderate', 'severe'][Math.floor(Math.random() * 4)] as any,
+      confidence: 0.85,
+      dataPoints: []
     }));
     setAnalyses(mockAnalyses);
   };
@@ -147,28 +146,32 @@ export default function AnalysisPage() {
         value: 82,
         trend: 'up',
         status: 'good',
-        description: 'Your heart health indicators are improving based on recent cardiology reports'
+        description: 'Your heart health indicators are improving based on recent cardiology reports',
+        lastUpdated: new Date().toISOString()
       },
       {
         category: 'Metabolic Health',
         value: 76,
         trend: 'stable',
         status: 'good',
-        description: 'Blood work shows stable metabolic function'
+        description: 'Blood work shows stable metabolic function',
+        lastUpdated: new Date().toISOString()
       },
       {
         category: 'Neurological Health',
         value: 88,
         trend: 'up',
         status: 'good',
-        description: 'Cognitive and neurological assessments are excellent'
+        description: 'Cognitive and neurological assessments are excellent',
+        lastUpdated: new Date().toISOString()
       },
       {
         category: 'General Wellness',
         value: 79,
         trend: 'down',
         status: 'warning',
-        description: 'Some areas need attention - check recommendations below'
+        description: 'Some areas need attention - check recommendations below',
+        lastUpdated: new Date().toISOString()
       }
     ];
     setHealthMetrics(metrics);
@@ -184,7 +187,9 @@ export default function AnalysisPage() {
         priority: 'medium',
         category: 'Cardiology',
         actionable: true,
-        dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+        dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        confidence: 0.85,
+        sources: ['Recent Cardiology Report']
       },
       {
         id: '2',
@@ -193,7 +198,9 @@ export default function AnalysisPage() {
         description: 'Your recent reports show a 15% improvement in blood pressure compared to 6 months ago.',
         priority: 'low',
         category: 'Cardiovascular',
-        actionable: false
+        actionable: false,
+        confidence: 0.92,
+        sources: ['Latest Cardiology Report']
       },
       {
         id: '3',
@@ -202,7 +209,9 @@ export default function AnalysisPage() {
         description: 'Your latest pathology report indicates low vitamin D levels. Consider supplementation.',
         priority: 'high',
         category: 'Nutritional',
-        actionable: true
+        actionable: true,
+        confidence: 0.95,
+        sources: ['Blood Work']
       },
       {
         id: '4',
@@ -211,16 +220,9 @@ export default function AnalysisPage() {
         description: 'Great progress! Your cholesterol levels have decreased by 20% over the past year.',
         priority: 'low',
         category: 'Cardiovascular',
-        actionable: false
-      },
-      {
-        id: '5',
-        type: 'recommendation',
-        title: 'Regular Exercise Recommended',
-        description: 'Based on your health profile, aim for 150 minutes of moderate exercise weekly.',
-        priority: 'medium',
-        category: 'Lifestyle',
-        actionable: true
+        actionable: false,
+        confidence: 0.88,
+        sources: ['Blood Work Series']
       }
     ];
     setInsights(mockInsights);
@@ -631,72 +633,6 @@ export default function AnalysisPage() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Report Analyses</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {getRecentAnalyses().map((analysis) => (
-                      <div key={analysis.id} className="p-3 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium capitalize">{analysis.reportType} Report</h4>
-                          <Badge variant={
-                            analysis.severity === 'normal' ? 'secondary' :
-                            analysis.severity === 'mild' ? 'default' :
-                            analysis.severity === 'moderate' ? 'default' : 'destructive'
-                          }>
-                            {analysis.severity}
-                          </Badge>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                          <div>
-                            <span className="font-medium">Key Findings:</span>
-                            <ul className="list-disc list-inside text-gray-600 ml-2">
-                              {analysis.keyFindings.slice(0, 2).map((finding, idx) => (
-                                <li key={idx}>{finding}</li>
-                              ))}
-                            </ul>
-                          </div>
-                          {analysis.followUpNeeded && (
-                            <div className="flex items-center gap-1 text-orange-600">
-                              <Clock className="h-4 w-4" />
-                              <span className="text-xs">Follow-up needed</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Health Score Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {healthMetrics.map((metric, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm">{metric.category}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-diagnoweb-primary h-2 rounded-full" 
-                              style={{ width: `${metric.value}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm font-medium w-8">{metric.value}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
 
           <TabsContent value="recommendations" className="space-y-4">
@@ -773,43 +709,12 @@ export default function AnalysisPage() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Follow-up Schedule */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    Recommended Follow-up Schedule
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {[
-                      { type: 'Cardiology', period: '3 months', reason: 'Monitor blood pressure improvements' },
-                      { type: 'General Checkup', period: '6 months', reason: 'Annual health assessment' },
-                      { type: 'Blood Work', period: '3 months', reason: 'Check vitamin D levels' },
-                      { type: 'Radiology', period: '12 months', reason: 'Routine preventive screening' }
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <h4 className="font-medium">{item.type}</h4>
-                          <p className="text-sm text-gray-600">{item.reason}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium text-diagnoweb-primary">{item.period}</p>
-                          <Button size="sm" variant="outline" className="mt-1">
-                            Schedule
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
   );
-}
+};
+
+export default AnalysisPage;
