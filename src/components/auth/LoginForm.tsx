@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { LogIn, AlertTriangle, Mail, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,7 +32,7 @@ export function LoginForm() {
   const [userEmail, setUserEmail] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
+  
   
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -84,11 +84,7 @@ export function LoginForm() {
           setErrorMessage(error.message || "Failed to sign in. Please try again.");
         }
         
-        toast({
-          title: "Login failed",
-          description: error.message || "Invalid email or password",
-          variant: "destructive",
-        });
+        toast.error(error.message || "Invalid email or password");
       } else if (authData.user) {
         // Check if user has a PIN set
         const hasPinSet = checkUserPin(data.email);
@@ -103,10 +99,7 @@ export function LoginForm() {
         const userType = authData.user.user_metadata?.user_type;
         console.log("User logged in successfully. User type:", userType);
         
-        toast({
-          title: "Successfully logged in",
-          description: `Welcome back to Diagnoweb${userType ? ` as ${userType}` : ''}`,
-        });
+        toast.success(`Welcome back to Diagnoweb${userType ? ` as ${userType}` : ''}`);
         
         // Redirect based on role if needed
         navigate("/dashboard");
@@ -114,11 +107,7 @@ export function LoginForm() {
     } catch (error) {
       console.error("Unexpected login error:", error);
       setErrorMessage("An unexpected error occurred. Please try again later.");
-      toast({
-        title: "Login failed",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -128,10 +117,7 @@ export function LoginForm() {
     // Store the PIN for the user
     localStorage.setItem(`user_pin_${userEmail}`, pin);
     
-    toast({
-      title: "PIN set successfully",
-      description: "Your security PIN has been created. Redirecting to dashboard...",
-    });
+    toast.success("Your security PIN has been created. Redirecting to dashboard...");
     
     setShowPinSetup(false);
     
@@ -158,17 +144,10 @@ export function LoginForm() {
       
       if (error) {
         setErrorMessage(`Failed to resend verification email: ${error.message}`);
-        toast({
-          title: "Failed to resend",
-          description: error.message,
-          variant: "destructive",
-        });
+        toast.error(error.message);
       } else {
         setErrorMessage(null);
-        toast({
-          title: "Verification email sent",
-          description: "Please check your inbox and follow the link to verify your email",
-        });
+        toast.success("Please check your inbox and follow the link to verify your email");
       }
     } catch (error) {
       console.error("Error resending verification:", error);

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { UserPlus, Mail, User, Lock, UserRound, AlertTriangle, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -39,7 +39,7 @@ export function RegisterForm() {
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [registeredUserType, setRegisteredUserType] = useState<string>("");
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
@@ -78,18 +78,10 @@ export function RegisterForm() {
         
         if (authError.message.includes("already registered")) {
           setError("This email is already registered. Please try logging in instead.");
-          toast({
-            title: "Email already registered",
-            description: "Please try logging in with your existing account",
-            variant: "destructive"
-          });
+          toast.error("Please try logging in with your existing account");
         } else {
           setError(authError.message);
-          toast({
-            title: "Registration failed",
-            description: authError.message,
-            variant: "destructive"
-          });
+          toast.error(authError.message);
         }
       } else {
         console.log("Registration successful:", authData);
@@ -106,11 +98,7 @@ export function RegisterForm() {
       const errorMessage = error instanceof Error ? error.message : "There was a problem creating your account";
       console.error("Registration error:", error);
       setError(errorMessage);
-      toast({
-        title: "Registration failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -125,10 +113,7 @@ export function RegisterForm() {
     if (registeredUserType === "hospital") userTypeLabel = "hospital administrator";
     
     setSuccessMessage(`Account created successfully as ${userTypeLabel}! Please check your email to verify your account before signing in.`);
-    toast({
-      title: "Account created successfully",
-      description: `You are registered as a ${userTypeLabel}. Please check your email to verify your account.`,
-    });
+    toast.success(`You are registered as a ${userTypeLabel}. Please check your email to verify your account.`);
     
     setShowPinSetup(false);
     
@@ -273,7 +258,7 @@ export function RegisterForm() {
 
           <Button 
             type="submit" 
-            className="w-full bg-dignoweb-primary hover:bg-dignoweb-primary/90 mt-6"
+            className="w-full bg-diagnoweb-primary hover:bg-diagnoweb-primary/90 mt-6"
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : (
@@ -290,7 +275,7 @@ export function RegisterForm() {
         <span className="text-gray-500">Already have an account?</span>{" "}
         <Button 
           variant="link" 
-          className="px-0 text-dignoweb-primary"
+          className="px-0 text-diagnoweb-primary"
           onClick={() => navigate("/login")}
           type="button"
         >
