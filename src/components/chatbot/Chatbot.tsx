@@ -95,6 +95,8 @@ export const Chatbot = () => {
 - Finding hospitals and clinics
 - Navigating the dashboard
 - Searching through reports
+- Using the Analysis & Insights feature for health trends
+- Understanding AI-generated health insights and recommendations
 - General platform guidance
 
 You should be helpful and informative, but always remind users that you cannot provide medical advice and they should consult healthcare professionals for medical concerns. Keep responses concise and helpful.`
@@ -155,8 +157,10 @@ You should be helpful and informative, but always remind users that you cannot p
       return "You can find participating hospitals and clinics on the Hospitals page. This shows you all healthcare facilities that are integrated with Diagnoweb for seamless report sharing.";
     } else if (input.includes('search') || input.includes('find')) {
       return "Use the Search page to find specific medical reports, filter by date, hospital, or report type. You can also search for doctors or specific medical conditions in your reports.";
+    } else if (input.includes('analysis') || input.includes('insight') || input.includes('trends') || input.includes('health score')) {
+      return "Visit the Analysis & Insights page to get AI-powered analysis of your medical reports! You'll see health trends, personalized recommendations, risk assessments, and an overall health score. The AI can identify patterns in your reports and suggest improvements for your health.";
     } else if (input.includes('help') || input.includes('how')) {
-      return "I'm here to help! You can ask me about:\n• Uploading medical reports\n• Managing your PIN and security\n• Finding hospitals and doctors\n• Understanding your dashboard\n• Searching through your reports\n\nWhat specific area would you like help with?";
+              return "I'm here to help! You can ask me about:\n• Uploading medical reports\n• Managing your PIN and security\n• Finding hospitals and doctors\n• Understanding your dashboard\n• Searching through your reports\n• Getting AI-powered health analysis and insights\n\nWhat specific area would you like help with?";
     } else {
       return "I understand you're asking about health-related topics. While I can help you navigate Diagnoweb and understand how to use the platform, please remember that I cannot provide medical advice. For medical concerns, always consult with qualified healthcare professionals. Is there something specific about using Diagnoweb I can help you with?";
     }
@@ -189,8 +193,8 @@ You should be helpful and informative, but always remind users that you cannot p
             <div className="text-sm font-medium mb-2">👋 I can help you with:</div>
             <div className="text-xs space-y-1 opacity-90">
               <div>• Upload medical reports</div>
+              <div>• Get AI health analysis & insights</div>
               <div>• Manage your 4-digit PIN</div>
-              <div>• Find hospitals & clinics</div>
               <div>• Search through reports</div>
             </div>
             <div className="absolute bottom-[-8px] right-4 w-0 h-0 border-l-4 border-r-4 border-t-8 border-transparent border-t-diagnoweb-secondary"></div>
@@ -368,12 +372,12 @@ You should be helpful and informative, but always remind users that you cannot p
                  variant="outline"
                  size="sm"
                  onClick={() => {
-                   setInputValue("Show me nearby hospitals");
+                   setInputValue("Show me my health analysis and insights");
                    setTimeout(() => sendMessage(), 100);
                  }}
                  className="text-xs bg-white hover:bg-diagnoweb-primary/10 border-diagnoweb-primary/20"
                >
-                 🏥 Find Hospitals
+                 📊 Health Analysis
                </Button>
              </div>
            </div>

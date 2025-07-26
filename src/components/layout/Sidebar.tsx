@@ -11,7 +11,8 @@ import {
   LogOut, 
   Menu, 
   UserPlus,
-  Stethoscope
+  Stethoscope,
+  BarChart3
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -50,6 +51,7 @@ export function Sidebar({ className }: SidebarProps) {
       return [
         { name: "Dashboard", path: "/dashboard", icon: Home },
         { name: "My Reports", path: "/reports", icon: FileText },
+        { name: "Analysis & Insights", path: "/analysis", icon: BarChart3 },
         { name: "Upload", path: "/upload", icon: Upload },
         { name: "Search", path: "/search", icon: Search },
         { name: "Hospitals", path: "/hospitals", icon: Hospital },

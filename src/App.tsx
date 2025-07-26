@@ -14,6 +14,7 @@ import UploadPage from "./pages/UploadPage";
 import HospitalsPage from "./pages/HospitalsPage";
 import ReportsPage from "./pages/ReportsPage";
 import SearchPage from "./pages/SearchPage";
+import AnalysisPage from "./pages/AnalysisPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
@@ -125,6 +126,11 @@ const App = () => {
             <Route path="/search" element={
               <ProtectedRoute>
                 <SearchPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/analysis" element={
+              <ProtectedRoute>
+                <AnalysisPage />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
