@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Download, FileText, Search, X, Upload, File as FileIcon, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { 
   Table, 
   TableBody, 

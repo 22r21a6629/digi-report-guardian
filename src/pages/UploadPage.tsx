@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { UploadReport } from "@/components/reports/UploadReport";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";

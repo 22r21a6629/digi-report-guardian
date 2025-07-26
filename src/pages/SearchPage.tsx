@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Search as SearchIcon, FileText, Download, Eye, Calendar, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { PinAuthDialog } from "@/components/auth/PinAuthDialog";
 
 type SearchResult = {
