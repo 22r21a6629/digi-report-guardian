@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { HospitalField } from "./form/HospitalField";
@@ -35,7 +35,7 @@ export function DoctorPatientUpload() {
   
   const [user, setUser] = useState<any>(null);
   
-  const { toast } = useToast();
+  
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Search as SearchIcon, FileText, Download, Eye, Calendar, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { PinAuthDialog } from "@/components/auth/PinAuthDialog";
 
 type SearchResult = {
@@ -31,7 +31,7 @@ export default function SearchPage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
-  const { toast } = useToast();
+  
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

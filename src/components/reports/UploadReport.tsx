@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -26,7 +26,7 @@ export function UploadReport() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [isComponentReady, setIsComponentReady] = useState(false);
-  const { toast } = useToast();
+  
   const navigate = useNavigate();
 
   useEffect(() => {

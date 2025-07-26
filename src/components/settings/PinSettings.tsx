@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,7 +21,7 @@ export function PinSettings({ loading }: PinSettingsProps) {
   const [showConfirmPin, setShowConfirmPin] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
   const [userEmail, setUserEmail] = useState("");
-  const { toast } = useToast();
+  
 
   useEffect(() => {
     const getCurrentUserEmail = async () => {

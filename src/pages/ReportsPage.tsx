@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Download, FileText, Search, X, Upload, File as FileIcon, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { 
   Table, 
   TableBody, 
@@ -59,7 +59,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
-  const { toast } = useToast();
+  
   const navigate = useNavigate();
   
   const fetchReports = async () => {

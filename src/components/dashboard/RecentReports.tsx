@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
 import { PinAuthDialog } from "@/components/auth/PinAuthDialog";
 
@@ -28,7 +28,7 @@ export function RecentReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
-  const { toast } = useToast();
+  
   const navigate = useNavigate();
 
   useEffect(() => {

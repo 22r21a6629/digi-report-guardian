@@ -1,14 +1,14 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { UploadReport } from "@/components/reports/UploadReport";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function UploadPage() {
-  const { toast } = useToast();
+  
   const [bucketError, setBucketError] = useState(false);
   const [isCheckingBucket, setIsCheckingBucket] = useState(true);
   const navigate = useNavigate();

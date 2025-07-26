@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/lib/toast";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ForgotPinDialog } from "./ForgotPinDialog";
@@ -35,7 +35,7 @@ export function PinAuthDialog({
   const [isVerifying, setIsVerifying] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [showForgotPin, setShowForgotPin] = useState(false);
-  const { toast } = useToast();
+  
 
   useEffect(() => {
     const getCurrentUserEmail = async () => {

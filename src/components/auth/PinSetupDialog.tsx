@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/lib/toast";
 import { Lock, Eye, EyeOff } from "lucide-react";
 
 interface PinSetupDialogProps {
@@ -31,35 +31,23 @@ export function PinSetupDialog({
   const [showPin, setShowPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!pin || !confirmPin) {
-      toast({
-        title: "All fields required",
-        description: "Please enter and confirm your PIN",
-        variant: "destructive",
-      });
+      toast.error("Please enter and confirm your PIN");
       return;
     }
 
     if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
-      toast({
-        title: "Invalid PIN",
-        description: "PIN must be exactly 4 digits",
-        variant: "destructive",
-      });
+      toast.error("PIN must be exactly 4 digits");
       return;
     }
 
     if (pin !== confirmPin) {
-      toast({
-        title: "PINs don't match",
-        description: "Please make sure both PINs match",
-        variant: "destructive",
-      });
+      toast.error("Please make sure both PINs match");
       return;
     }
 
@@ -67,10 +55,7 @@ export function PinSetupDialog({
 
     // Simulate PIN setup delay
     setTimeout(() => {
-      toast({
-        title: "PIN set successfully",
-        description: "Your security PIN has been created",
-      });
+      toast.success("PIN set successfully!");
       onPinSet(pin);
       setPin("");
       setConfirmPin("");
