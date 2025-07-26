@@ -49,21 +49,67 @@ export const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      // Simulate AI response for now - in production, this would call your AI service
-      setTimeout(() => {
-        const botResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          text: getBotResponse(inputValue),
-          sender: 'bot',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, botResponse]);
-        setIsLoading(false);
-      }, 1000);
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer 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`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama3-8b-8192',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a helpful AI assistant for Diagnoweb, a medical report management platform. You help users with:
+- Understanding how to upload medical reports
+- Managing their 4-digit PIN for security
+- Finding hospitals and clinics
+- Navigating the dashboard
+- Searching through reports
+- General platform guidance
+
+You should be helpful and informative, but always remind users that you cannot provide medical advice and they should consult healthcare professionals for medical concerns. Keep responses concise and helpful.`
+            },
+            {
+              role: 'user',
+              content: inputValue
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
+      const aiText = data.choices[0]?.message?.content || "I'm sorry, I couldn't process that request. Please try again.";
+
+      const botResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: aiText,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, botResponse]);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error("Failed to send message. Please try again.");
+      
+      // Fallback to local responses if API fails
+      const botResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: getBotResponse(inputValue),
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botResponse]);
       setIsLoading(false);
+      
+      toast.error("AI service temporarily unavailable. Using fallback responses.");
     }
   };
 
