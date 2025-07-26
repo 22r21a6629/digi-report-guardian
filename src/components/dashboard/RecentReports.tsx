@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Download } from "lucide-react";
+import { Eye, Download, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toast";
 import { useNavigate } from "react-router-dom";
 import { PinAuthDialog } from "@/components/auth/PinAuthDialog";
+import { ReportAnalysisDialog } from "@/components/reports/ReportAnalysisDialog";
+import { AIReportAnalyzer, ReportAnalysis } from "@/lib/aiReportAnalyzer";
 
 type Report = {
   id: string;
@@ -20,7 +22,7 @@ type Report = {
 };
 
 type PendingAction = {
-  type: 'view' | 'download';
+  type: 'view' | 'download' | 'analyze';
   report: Report;
 } | null;
 
@@ -28,6 +30,9 @@ export function RecentReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [analysisDialog, setAnalysisDialog] = useState(false);
+  const [currentAnalysis, setCurrentAnalysis] = useState<ReportAnalysis | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
   
   const navigate = useNavigate();
 
@@ -78,7 +83,11 @@ export function RecentReports() {
     setPendingAction({ type: 'download', report });
   };
 
-  const executePendingAction = () => {
+  const handleAnalyze = (report: Report) => {
+    setPendingAction({ type: 'analyze', report });
+  };
+
+  const executePendingAction = async () => {
     if (!pendingAction) return;
 
     const { type, report } = pendingAction;
@@ -109,6 +118,46 @@ export function RecentReports() {
           description: "There was a problem downloading your report",
           variant: "destructive",
         });
+      }
+    } else if (type === 'analyze') {
+      setAnalysisLoading(true);
+      setAnalysisDialog(true);
+      
+      try {
+        const existingAnalysis = AIReportAnalyzer.getAnalysis(report.id);
+        if (existingAnalysis) {
+          setCurrentAnalysis(existingAnalysis);
+          setAnalysisLoading(false);
+          toast({
+            title: "Analysis loaded",
+            description: "Displaying saved analysis for this report",
+          });
+        } else {
+          const analysis = await AIReportAnalyzer.analyzeReport(
+            report.report_date || report.file_name,
+            report.report_type,
+            report.file_name,
+            report.id
+          );
+          
+          AIReportAnalyzer.saveAnalysis(analysis);
+          setCurrentAnalysis(analysis);
+          
+          toast({
+            title: "Analysis complete",
+            description: "AI analysis has been generated for your report",
+          });
+        }
+      } catch (error) {
+        console.error('Analysis error:', error);
+        toast({
+          title: "Analysis failed",
+          description: "There was a problem analyzing your report. Please try again.",
+          variant: "destructive",
+        });
+        setAnalysisDialog(false);
+      } finally {
+        setAnalysisLoading(false);
       }
     }
 
@@ -185,6 +234,15 @@ export function RecentReports() {
                           >
                             <Download className="h-4 w-4" />
                           </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost"
+                            onClick={() => handleAnalyze(report)}
+                            title="AI Analysis"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Brain className="h-4 w-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -201,12 +259,26 @@ export function RecentReports() {
         open={!!pendingAction}
         onOpenChange={(open) => !open && setPendingAction(null)}
         onSuccess={executePendingAction}
-        title={pendingAction?.type === 'view' ? 'Secure Access Required' : 'Download Authorization'}
+        title={
+          pendingAction?.type === 'view' ? 'Secure Access Required' : 
+          pendingAction?.type === 'download' ? 'Download Authorization' : 
+          'AI Analysis Authorization'
+        }
         description={
           pendingAction?.type === 'view' 
             ? `Enter your PIN to view "${pendingAction.report.file_name}"`
-            : `Enter your PIN to download "${pendingAction?.report.file_name}"`
+            : pendingAction?.type === 'download'
+            ? `Enter your PIN to download "${pendingAction?.report.file_name}"`
+            : `Enter your PIN to analyze "${pendingAction?.report.file_name}" with AI`
         }
+      />
+
+      {/* Analysis Dialog */}
+      <ReportAnalysisDialog
+        open={analysisDialog}
+        onOpenChange={setAnalysisDialog}
+        analysis={currentAnalysis}
+        loading={analysisLoading}
       />
     </>
   );
