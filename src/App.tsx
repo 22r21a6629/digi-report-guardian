@@ -16,7 +16,7 @@ import ReportsPage from "./pages/ReportsPage";
 import SearchPage from "./pages/SearchPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
-import InsightsPage from "./pages/InsightsPage";
+
 import NotFound from "./pages/NotFound";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import Index from "./pages/Index";
@@ -126,11 +126,6 @@ const App = () => {
             <Route path="/search" element={
               <ProtectedRoute>
                 <SearchPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/insights" element={
-              <ProtectedRoute>
-                <InsightsPage />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

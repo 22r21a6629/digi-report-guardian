@@ -1,78 +1,17 @@
 
-import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentReports } from "@/components/dashboard/RecentReports";
 import { NotificationBar } from "@/components/dashboard/NotificationBar";
-import { HealthInsightsWidget } from "@/components/dashboard/HealthInsightsWidget";
-import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
-
-type Report = Database['public']['Tables']['reports']['Row'];
 
 export default function DashboardPage() {
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('reports')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          console.error('Error fetching reports:', error);
-          setReports([]);
-        } else {
-          setReports(data || []);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        setReports([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReports();
-
-    // Set up a subscription to listen for new reports
-    const channel = supabase
-      .channel('dashboard-reports-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reports'
-        },
-        () => {
-          fetchReports();
-        }
-      )
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
   return (
     <AppLayout title="Dashboard">
       <div className="space-y-4 sm:space-y-6">
         <NotificationBar />
         <DashboardStats />
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <RecentReports />
-          </div>
-          <div>
-            <HealthInsightsWidget reports={reports} loading={loading} />
-          </div>
-        </div>
+        <RecentReports />
       </div>
     </AppLayout>
   );
